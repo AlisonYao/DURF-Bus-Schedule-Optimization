@@ -5,7 +5,6 @@ Last Updated @ Jun 14, 2021
 
 import random
 import numpy as np
-from collections import defaultdict
 
 
 def generate_random_N_paths(N, path_length):
@@ -69,9 +68,11 @@ def fitness(binary_N_paths):
     """
     total_cost = 0
     for one_path in binary_N_paths:
-        target_indices = np. where(one_path == 1)
-        duration_interval_num = int(target_indices[0][-1] - target_indices[0][0] + 1)
-        print(duration_interval_num)
+        target_indices = np.where(one_path == 1)[0]
+        if len(target_indices) == 0:
+            duration_interval_num = 0
+        else:
+            duration_interval_num = int(target_indices[-1] - target_indices[0] + 1)
         if duration_interval_num * intervalDuration <= 5:
             total_cost += 90
         elif duration_interval_num * intervalDuration <= 7.5:
@@ -81,25 +82,33 @@ def fitness(binary_N_paths):
     return total_cost
 
 def generate_population(population_size=20):
-    population = defaultdict(int)
+    population, fitness_scores = [], []
     for _ in range(population_size):
         while True:
             binary_N_paths = generate_random_N_paths(N, intervalNum)
             if check_feasibility(binary_N_paths):
-                population[binary_N_paths] = fitness(binary_N_paths)
+                population.append(binary_N_paths)
+                fitness_score = fitness(binary_N_paths)
+                fitness_scores.append(fitness_score)
                 break
-            else:
-                print("not feasible!!!!!!!!")
-    print(population)
+            # else:
+            #     print("not feasible!!!!!!!!")
+    return np.array(population), np.array(fitness_scores)
 
-def elitism():
-    pass
+def elitism(population, fitness_scores, elitism_cutoff=2):
+    elite_indices = np.argpartition(fitness_scores, elitism_cutoff)[:elitism_cutoff]
+    return population[elite_indices, :]
 
 def single_point_crossover():
     pass
 
-def mutation():
-    pass
+def mutation(binary_N_paths):
+    while True:
+        mutate_path = np.random.randint(0, N)
+        mutate_node = np.random.randint(0, intervalNum)
+        binary_N_paths[mutate_path][mutate_node] = abs(1 - binary_N_paths[mutate_path][mutate_node])
+        if check_feasibility(binary_N_paths):
+            return binary_N_paths
 
 def run_evolution():
     pass 
@@ -107,16 +116,17 @@ def run_evolution():
 
 if __name__ == "__main__":
     # initialization for genetic algo
-    iteration = 10
     population_size = 10
+    iteration = 10
+    elitism_cutoff = 2
     # initialization
-    N = 3
-    D = 40
+    N = 3 # # of buses
+    D = 40 # #seats on each bus
     intervalNum = 3
     intervalDuration = 0.5
     demand = np.array([
-        [50, 60, 20, ], 
-        [0, 10, 50]
+        [0, 10, 0], 
+        [0, 50, 0]
     ])
     # demand = np.array([
     #     [114,106,132,132,117,83,57,52,13,8,18,13,26,3,13,10,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0], 
@@ -125,4 +135,4 @@ if __name__ == "__main__":
     
     # temp = generate_random_N_paths(N, intervalNum)
     # print(fitness(temp))
-    print(generate_population())
+    print(generate_population(population_size))
