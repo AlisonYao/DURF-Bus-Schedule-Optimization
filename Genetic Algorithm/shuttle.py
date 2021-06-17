@@ -10,7 +10,8 @@ import numpy as np
 def generate_random_N_paths(N, path_length):
     binary_N_paths = []
     for _ in range(N):
-        one_path = random.choices([0, 1], k=path_length)
+        # set the weights to initialize feasible solution faster
+        one_path = random.choices(population=[0, 1], weights=[0.2, 0.8], k=path_length)
         binary_N_paths.append(one_path)
     return np.array(binary_N_paths)
 
@@ -83,16 +84,15 @@ def fitness(binary_N_paths):
 
 def generate_population(population_size=20):
     population, fitness_scores = [], []
-    for _ in range(population_size):
-        while True:
-            binary_N_paths = generate_random_N_paths(N, intervalNum)
-            if check_feasibility(binary_N_paths):
-                population.append(binary_N_paths)
-                fitness_score = fitness(binary_N_paths)
-                fitness_scores.append(fitness_score)
-                break
-            # else:
-            #     print("not feasible!!!!!!!!")
+    while len(population) < population_size:
+        binary_N_paths = generate_random_N_paths(N, intervalNum)
+        if check_feasibility(binary_N_paths):
+            population.append(binary_N_paths)
+            fitness_score = fitness(binary_N_paths)
+            fitness_scores.append(fitness_score)
+            break
+        else:
+            print(".", end="")
     return np.array(population), np.array(fitness_scores)
 
 def elitism(population, fitness_scores, elitism_cutoff=2):
@@ -111,28 +111,32 @@ def mutation(binary_N_paths):
             return binary_N_paths
 
 def run_evolution():
-    pass 
-
+   # first initialize a population 
+    population = generate_population(population_size)
+    # start evolving :)
+    for _ in range(evolution_depth):
+        population_fitness = [fitness(binary_N_paths) for binary_N_paths in population]
+        print('min fitness score in population:', min(population_fitness))
+    pass
 
 if __name__ == "__main__":
     # initialization for genetic algo
     population_size = 10
-    iteration = 10
+    evolution_depth = 3
     elitism_cutoff = 2
     # initialization
-    N = 3 # # of buses
+    N = 11 # # of buses
     D = 40 # #seats on each bus
-    intervalNum = 3
     intervalDuration = 0.5
-    demand = np.array([
-        [0, 10, 0], 
-        [0, 50, 0]
-    ])
     # demand = np.array([
-    #     [114,106,132,132,117,83,57,52,13,8,18,13,26,3,13,10,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0], 
-    #     [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
+    #     [20, 10, 0], 
+    #     [0, 50, 10]
     # ])
-    
-    # temp = generate_random_N_paths(N, intervalNum)
-    # print(fitness(temp))
-    print(generate_population(population_size))
+    demand = np.array([
+        [114,106,132,132,117,83,57,52,13,8,18,13,26,3,13,10,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0], 
+        [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
+    ])
+    intervalNum = demand.shape[-1]
+
+    # run main function
+    run_evolution()
