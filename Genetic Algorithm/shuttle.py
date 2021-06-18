@@ -5,6 +5,7 @@ Last Updated @ Jun 14, 2021
 
 import random
 import numpy as np
+import time
 
 
 def generate_random_N_paths(N, path_length):
@@ -92,8 +93,8 @@ def generate_population(population_size):
             fitness_score = fitness(binary_N_paths)
             fitness_scores.append(fitness_score)
             continue
-        # else:
-        #     print(".", end="")
+        else:
+            print("i", end="")
     return np.array(population), np.array(fitness_scores)
 
 def elitism(population, fitness_scores, elitism_cutoff=2):
@@ -143,51 +144,79 @@ def single_point_crossover(parent1, parent2):
             return kid1, None
         elif not check_feasibility(kid1) and check_feasibility(kid2):
             return None, kid2
+        else:
+            print("c", end="")
 
 def mutation(binary_N_paths):
     """
     Mutate only one node in one path for now
     TODO: try using a more complicated mutation method
     """
-    while True:
+    count = 0
+    loop_limit  = 100
+    binary_N_paths_copy = binary_N_paths.copy()
+    while count <= loop_limit:
         mutate_path = np.random.randint(0, N)
         mutate_node = np.random.randint(0, intervalNum)
-        binary_N_paths[mutate_path][mutate_node] = abs(1 - binary_N_paths[mutate_path][mutate_node])
-        if check_feasibility(binary_N_paths):
-            return binary_N_paths
+        binary_N_paths_copy[mutate_path][mutate_node] = abs(1 - binary_N_paths_copy[mutate_path][mutate_node])
+        if check_feasibility(binary_N_paths_copy):
+            return binary_N_paths_copy
+        else:
+            print("m", end="")
+        count += 1
+        if count == loop_limit:
+            print("||||||||||||||||", end="")
+    return binary_N_paths
 
 def result_stats(progress):
     """
-    TODO: have a nicer output 
-    TODO: TIME everything
+    TODO: visualize output -- plot
     """
+    print('**************************************************************')
     print("Progress of improvement:", progress)
+    print("Improvement Rate:", (progress[-1] - progress[0])/progress[0])
+    print('**************************************************************')
 
 def run_evolution(population_size, evolution_depth, elitism_cutoff):
+    tic = time.time()
     # first initialize a population 
     population, population_fitnesses = generate_population(population_size)
+    initialization_end = time.time()
+    print('\nInitialization Done!', initialization_end - tic)
     # keep track of improvement
     progress = []
     # start evolving :)
     for i in range(evolution_depth):
         progress.append(min(population_fitnesses))
-        print(min(population_fitnesses))
+        print(f'----------------------------- generation {i + 1} Start! -----------------------------')
+        elitism_begin = time.time()
         elites = elitism(population, population_fitnesses, elitism_cutoff)
-        print('\nElites selected!')
+        elitism_end = time.time()
+        print('Elites selected!', elitism_end - elitism_begin)
+        children_begin = time.time()
         children = crossover_mutation(population, population_fitnesses, population_size, elitism_cutoff)
-        print('\nChildren created!')
+        children_end = time.time()
+        print('\nChildren created!', children_end - children_begin)
+        print('^^^^^^^^', elites.shape, children.shape)
         population = np.concatenate([elites, children])
-        print(f'----------------------------- generation {i + 1} evolved -----------------------------')
+        population_fitnesses = [fitness(binary_N_paths) for binary_N_paths in population]
+        evol_end = time.time()
+        print("Min Cost:", min(population_fitnesses))
+        print(f'----------------------------- generation {i + 1} evolved! {evol_end - elitism_begin} -----------------------------')
     result_stats(progress)
 
 if __name__ == "__main__":
-    # initialization for genetic algo
+
+    """initialization for genetic algo"""
     population_size = 10
     evolution_depth = 30
     elitism_cutoff = 2
-    # initialization
-    N = 11 # # of buses
-    D = 40 # #seats on each bus
+
+    """initialization for buses"""
+    # # of buses
+    N = 11
+    # #seats on each bus
+    D = 40
     intervalDuration = 0.5
     # demand = np.array([
     #     [20, 10, 0], 
