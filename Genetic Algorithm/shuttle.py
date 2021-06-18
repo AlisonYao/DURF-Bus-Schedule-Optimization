@@ -6,6 +6,7 @@ Last Updated @ Jun 14, 2021
 import random
 import numpy as np
 import time
+import matplotlib.pyplot as plt
 
 
 def generate_random_N_paths(N, path_length):
@@ -76,7 +77,9 @@ def fitness(binary_N_paths):
             duration_interval_num = 0
         else:
             duration_interval_num = int(target_indices[-1] - target_indices[0] + 1)
-        if duration_interval_num * intervalDuration <= 5:
+        if duration_interval_num == 0:
+            total_cost += 0
+        elif duration_interval_num * intervalDuration <= 5:
             total_cost += 90
         elif duration_interval_num * intervalDuration <= 7.5:
             total_cost += 180
@@ -134,7 +137,8 @@ def single_point_crossover(parent1, parent2):
     length = len(parent1)
     if length < 2:
         return parent1, parent2
-    while True:
+    count = 0
+    while count <= 100:
         cut = random.randint(1, length - 1)
         kid1 = np.append(parent1[0:cut, :], parent2[cut:, :]).reshape((N, intervalNum))
         kid2 = np.append(parent2[0:cut, :], parent1[cut:, :]).reshape((N, intervalNum))
@@ -146,6 +150,8 @@ def single_point_crossover(parent1, parent2):
             return None, kid2
         else:
             print("c", end="")
+        count += 1
+    return parent1, parent2
 
 def mutation(binary_N_paths):
     """
@@ -164,18 +170,17 @@ def mutation(binary_N_paths):
         else:
             print("m", end="")
         count += 1
-        if count == loop_limit:
-            print("||||||||||||||||", end="")
     return binary_N_paths
 
 def result_stats(progress):
-    """
-    TODO: visualize output -- plot
-    """
     print('**************************************************************')
     print("Progress of improvement:", progress)
-    print("Improvement Rate:", (progress[-1] - progress[0])/progress[0])
+    print("Improvement Rate:", abs(progress[-1] - progress[0])/progress[0])
     print('**************************************************************')
+    plt.plot(progress, data=progress)
+    plt.xlabel("Generation")
+    plt.ylabel("Cost")
+    plt.show()
 
 def run_evolution(population_size, evolution_depth, elitism_cutoff):
     tic = time.time()
@@ -183,6 +188,7 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
     population, population_fitnesses = generate_population(population_size)
     initialization_end = time.time()
     print('\nInitialization Done!', initialization_end - tic)
+    print('Initial Min Cost:', min(population_fitnesses))
     # keep track of improvement
     progress = []
     # start evolving :)
@@ -197,19 +203,23 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
         children = crossover_mutation(population, population_fitnesses, population_size, elitism_cutoff)
         children_end = time.time()
         print('\nChildren created!', children_end - children_begin)
-        print('^^^^^^^^', elites.shape, children.shape)
+        print('$$$$$$$$$$$$$$', elites.shape, children.shape)
         population = np.concatenate([elites, children])
         population_fitnesses = [fitness(binary_N_paths) for binary_N_paths in population]
         evol_end = time.time()
         print("Min Cost:", min(population_fitnesses))
-        print(f'----------------------------- generation {i + 1} evolved! {evol_end - elitism_begin} -----------------------------')
+        print(f'----------------------------- generation {i + 1} evolved! {evol_end - elitism_begin} -----------------------------\n')
     result_stats(progress)
+
+    # print best solution
+    minIndex = population_fitnesses.index(min(population_fitnesses))
+    print(population[minIndex])
 
 if __name__ == "__main__":
 
     """initialization for genetic algo"""
-    population_size = 10
-    evolution_depth = 30
+    population_size = 20
+    evolution_depth = 10000
     elitism_cutoff = 2
 
     """initialization for buses"""
@@ -218,10 +228,6 @@ if __name__ == "__main__":
     # #seats on each bus
     D = 40
     intervalDuration = 0.5
-    # demand = np.array([
-    #     [20, 10, 0], 
-    #     [0, 50, 10]
-    # ])
     demand = np.array([
         [114,106,132,132,117,83,57,52,13,8,18,13,26,3,13,10,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0], 
         [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
