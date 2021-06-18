@@ -65,7 +65,8 @@ def check_feasibility(binary_N_paths):
 
 def fitness(binary_N_paths):
     """
-    objective function ish
+    objective function ish -> natural selection to pick the good ones
+    the lower the better!!
     """
     total_cost = 0
     for one_path in binary_N_paths:
@@ -82,7 +83,7 @@ def fitness(binary_N_paths):
             total_cost += (20 * intervalDuration) * duration_interval_num
     return total_cost
 
-def generate_population(population_size=20):
+def generate_population(population_size):
     population, fitness_scores = [], []
     while len(population) < population_size:
         binary_N_paths = generate_random_N_paths(N, intervalNum)
@@ -90,19 +91,64 @@ def generate_population(population_size=20):
             population.append(binary_N_paths)
             fitness_score = fitness(binary_N_paths)
             fitness_scores.append(fitness_score)
-            break
-        else:
-            print(".", end="")
+            continue
+        # else:
+        #     print(".", end="")
     return np.array(population), np.array(fitness_scores)
 
 def elitism(population, fitness_scores, elitism_cutoff=2):
-    elite_indices = np.argpartition(fitness_scores, elitism_cutoff)[:elitism_cutoff]
+    elite_indices = np.argpartition(np.array(fitness_scores), elitism_cutoff)[:elitism_cutoff]
     return population[elite_indices, :]
 
-def single_point_crossover():
-    pass
+def crossover_mutation(population, fitness_scores, population_size, elitism_cutoff):
+    """
+    Randomly pick the good ones and cross them over
+    """
+    children = []
+    while True:
+        parents = random.choices(
+            population=population,
+            weights=[(max(fitness_scores) - score + 1)/(max(fitness_scores) * len(fitness_scores) - sum(fitness_scores) + len(fitness_scores)) for score in fitness_scores],
+            k=2
+        )
+        kid1, kid2 = single_point_crossover(parents[0], parents[1])
+        if kid1 is not None:
+            kid1 = mutation(kid1)
+            children.append(kid1)
+        if len(children) == population_size - elitism_cutoff:
+            return np.array(children)
+        if kid2 is not None:
+            kid2 = mutation(kid2)
+            children.append(kid2)
+        if len(children) == population_size - elitism_cutoff:
+            return np.array(children)
+
+def single_point_crossover(parent1, parent2):
+    """
+    Randomly pick the good ones and cross them over
+    TODO: try multi-point
+    TODO: try multi parents
+    """
+    assert parent1.size == parent2.size
+    length = len(parent1)
+    if length < 2:
+        return parent1, parent2
+    while True:
+        cut = random.randint(1, length - 1)
+        kid1 = np.append(parent1[0:cut, :], parent2[cut:, :]).reshape((N, intervalNum))
+        kid2 = np.append(parent2[0:cut, :], parent1[cut:, :]).reshape((N, intervalNum))
+        if check_feasibility(kid1) and check_feasibility(kid2):
+            return kid1, kid2
+        elif check_feasibility(kid1) and not check_feasibility(kid2):
+            return kid1, None
+        elif not check_feasibility(kid1) and check_feasibility(kid2):
+            return None, kid2
 
 def mutation(binary_N_paths):
+    """
+    Mutate only one node in one path for now
+    TODO: try using a more complicated mutation method
+    """
     while True:
         mutate_path = np.random.randint(0, N)
         mutate_node = np.random.randint(0, intervalNum)
@@ -110,19 +156,34 @@ def mutation(binary_N_paths):
         if check_feasibility(binary_N_paths):
             return binary_N_paths
 
-def run_evolution():
-   # first initialize a population 
-    population = generate_population(population_size)
+def result_stats(progress):
+    """
+    TODO: have a nicer output 
+    TODO: TIME everything
+    """
+    print("Progress of improvement:", progress)
+
+def run_evolution(population_size, evolution_depth, elitism_cutoff):
+    # first initialize a population 
+    population, population_fitnesses = generate_population(population_size)
+    # keep track of improvement
+    progress = []
     # start evolving :)
-    for _ in range(evolution_depth):
-        population_fitness = [fitness(binary_N_paths) for binary_N_paths in population]
-        print('min fitness score in population:', min(population_fitness))
-    pass
+    for i in range(evolution_depth):
+        progress.append(min(population_fitnesses))
+        print(min(population_fitnesses))
+        elites = elitism(population, population_fitnesses, elitism_cutoff)
+        print('\nElites selected!')
+        children = crossover_mutation(population, population_fitnesses, population_size, elitism_cutoff)
+        print('\nChildren created!')
+        population = np.concatenate([elites, children])
+        print(f'----------------------------- generation {i + 1} evolved -----------------------------')
+    result_stats(progress)
 
 if __name__ == "__main__":
     # initialization for genetic algo
     population_size = 10
-    evolution_depth = 3
+    evolution_depth = 30
     elitism_cutoff = 2
     # initialization
     N = 11 # # of buses
@@ -139,4 +200,4 @@ if __name__ == "__main__":
     intervalNum = demand.shape[-1]
 
     # run main function
-    run_evolution()
+    run_evolution(population_size, evolution_depth, elitism_cutoff)

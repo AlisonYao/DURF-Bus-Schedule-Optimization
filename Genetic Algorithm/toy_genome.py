@@ -93,6 +93,7 @@ def run_evolution(
             key=lambda genome: fitness_func(genome),
             reverse=True
         )
+        print('@@@@@@@@@', len(population))
         if fitness_func(population[0]) >= fitness_limit:
             break
         next_generation = population[0:2]
@@ -103,6 +104,7 @@ def run_evolution(
             offspring_b = mutation_func(offspring_b)
             next_generation += [offspring_a, offspring_b]
         population = next_generation
+        
     population = sorted(
         population,
         key=lambda genome: fitness_func(genome),
