@@ -1,6 +1,6 @@
 """
 Author: Alison Yao
-Last Updated @ Jun 14, 2021
+Last Updated @ Jun 19, 2021
 """
 
 import random
@@ -117,12 +117,12 @@ def crossover_mutation(population, fitness_scores, population_size, elitism_cuto
         )
         kid1, kid2 = single_point_crossover(parents[0], parents[1])
         if kid1 is not None:
-            kid1 = mutation(kid1)
+            kid1 = single_mutation(kid1)
             children.append(kid1)
         if len(children) == population_size - elitism_cutoff:
             return np.array(children)
         if kid2 is not None:
-            kid2 = mutation(kid2)
+            kid2 = single_mutation(kid2)
             children.append(kid2)
         if len(children) == population_size - elitism_cutoff:
             return np.array(children)
@@ -138,7 +138,7 @@ def single_point_crossover(parent1, parent2):
     if length < 2:
         return parent1, parent2
     count = 0
-    while count <= 100:
+    while count <= loop_limit:
         cut = random.randint(1, length - 1)
         kid1 = np.append(parent1[0:cut, :], parent2[cut:, :]).reshape((N, intervalNum))
         kid2 = np.append(parent2[0:cut, :], parent1[cut:, :]).reshape((N, intervalNum))
@@ -153,13 +153,11 @@ def single_point_crossover(parent1, parent2):
         count += 1
     return parent1, parent2
 
-def mutation(binary_N_paths):
+def single_mutation(binary_N_paths):
     """
     Mutate only one node in one path for now
-    TODO: try using a more complicated mutation method
     """
     count = 0
-    loop_limit  = 100
     binary_N_paths_copy = binary_N_paths.copy()
     while count <= loop_limit:
         mutate_path = np.random.randint(0, N)
@@ -170,9 +168,12 @@ def mutation(binary_N_paths):
         else:
             print("m", end="")
         count += 1
-    return binary_N_paths
+    return binary_N_paths    
 
 def result_stats(progress):
+    """
+    print important stats & visulize progress
+    """
     print('**************************************************************')
     print("Progress of improvement:", progress)
     print("Improvement Rate:", abs(progress[-1] - progress[0])/progress[0])
@@ -215,12 +216,17 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
     minIndex = population_fitnesses.index(min(population_fitnesses))
     print(population[minIndex])
 
+    directional_N_paths = [decode_one_path(one_path) for one_path in population[minIndex]]
+    link = sum(directional_N_paths)
+    print(link)
+
 if __name__ == "__main__":
 
     """initialization for genetic algo"""
     population_size = 20
-    evolution_depth = 10000
+    evolution_depth = 10
     elitism_cutoff = 2
+    loop_limit = 100
 
     """initialization for buses"""
     # # of buses
