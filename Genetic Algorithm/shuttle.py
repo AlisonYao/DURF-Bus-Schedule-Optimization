@@ -13,7 +13,7 @@ def generate_random_N_paths(N, path_length):
     binary_N_paths = []
     for _ in range(N):
         # set the weights to initialize feasible solution faster
-        one_path = random.choices(population=[0, 1], weights=[0.2, 0.8], k=path_length)
+        one_path = random.choices(population=[0, 1], weights=[1-initial_prob, initial_prob], k=path_length)
         binary_N_paths.append(one_path)
     return np.array(binary_N_paths)
 
@@ -54,16 +54,68 @@ def decode_one_path(one_path):
         i, previous_node = j, current_node
     return np.array(decoded).T
 
-def check_feasibility(binary_N_paths):
+def meet_demand(binary_N_paths):
     '''
-    s.t. constraints
-    make sure initial paths & crossover paths & mutated paths are feasible
+    meet demand
     '''
     # get the link representation first
     directional_N_paths = [decode_one_path(one_path) for one_path in binary_N_paths]
     link = sum(directional_N_paths)
     # we hope every demand is met
     return np.greater_equal(link[1:3, :] * D, demand).all()
+
+def rush_hour_constraint(binary_N_paths):
+    '''
+    during rush hours, one interval is not enough time to commute
+    '''
+    for one_path in binary_N_paths:
+        if one_path[1] + one_path[2] == 2:
+            print("r", end="")
+            return False
+        if one_path[2] + one_path[3] == 2:
+            print("r", end="")
+            return False
+        if one_path[21] + one_path[22] == 2:
+            print("r", end="")
+            return False
+    return True
+
+def max_working_hour_constraint(binary_N_paths):
+    '''
+    make sure that no driver works more than a few hours continuously
+    '''
+    for one_path in binary_N_paths:
+        num = 0
+        for i, node in enumerate(one_path):
+            num += node
+            if i+1 == len(one_path):
+                if num >= maxWorkingHour * intervalDuration:
+                    print("w", end="")
+                    return False
+                return True
+            if node == 1 and one_path[i+1] == 0:
+                if num >= maxWorkingHour * intervalDuration:
+                    print("w", end="")
+                    return False
+                num = 0
+
+def check_feasibility(binary_N_paths, checkRushHour=False, checkMaxWorkingHour=False):
+    '''
+    s.t. constraints (make sure initial paths & crossover paths & mutated paths are feasible)
+    constraint1: meet demand
+    constraint2: during rush hours, one interval is not enough time to commute (optional)
+    constraint3: make sure that no driver works more than a few hours continuously (optional)
+    '''
+    # print('binary_N_paths:\n', binary_N_paths)
+    rushHour, maxWorkingHour = True, True
+    if checkRushHour:
+        rushHour = rush_hour_constraint(binary_N_paths)
+    if checkMaxWorkingHour:
+        maxWorkingHour = max_working_hour_constraint(binary_N_paths)
+    demandFlag = meet_demand(binary_N_paths)
+    if demandFlag == False:
+        print("d", end="")
+    return demandFlag and rushHour and maxWorkingHour
 
 def fitness(binary_N_paths):
     """
@@ -204,7 +256,6 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
         children = crossover_mutation(population, population_fitnesses, population_size, elitism_cutoff)
         children_end = time.time()
         print('\nChildren created!', children_end - children_begin)
-        print('$$$$$$$$$$$$$$', elites.shape, children.shape)
         population = np.concatenate([elites, children])
         population_fitnesses = [fitness(binary_N_paths) for binary_N_paths in population]
         evol_end = time.time()
@@ -223,10 +274,11 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
 if __name__ == "__main__":
 
     """initialization for genetic algo"""
+    initial_prob = 0.8
     population_size = 20
-    evolution_depth = 10
     elitism_cutoff = 2
     loop_limit = 100
+    evolution_depth = 30
 
     """initialization for buses"""
     # # of buses
@@ -239,6 +291,7 @@ if __name__ == "__main__":
         [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
     ])
     intervalNum = demand.shape[-1]
+    maxWorkingHour = 4
 
     # run main function
     run_evolution(population_size, evolution_depth, elitism_cutoff)
