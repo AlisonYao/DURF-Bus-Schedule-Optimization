@@ -236,6 +236,10 @@ def result_stats(progress):
     plt.show()
 
 def run_evolution(population_size, evolution_depth, elitism_cutoff):
+    '''
+    Main function of Genetic Algorithm
+    TODO: figure out a way to check the final outcome fits the constraints
+    '''
     tic = time.time()
     # first initialize a population 
     population, population_fitnesses = generate_population(population_size)
@@ -261,15 +265,19 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
         evol_end = time.time()
         print("Min Cost:", min(population_fitnesses))
         print(f'----------------------------- generation {i + 1} evolved! {evol_end - elitism_begin} -----------------------------\n')
+    # plot results
     result_stats(progress)
 
     # print best solution
     minIndex = population_fitnesses.index(min(population_fitnesses))
-    print(population[minIndex])
+    best_solution = population[minIndex]
+    print('best solution (path):\n', best_solution)
+    # check if all constraints are met (ideally True)
+    print("\nAll constraints met?", check_feasibility(best_solution, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag))
 
     directional_N_paths = [decode_one_path(one_path) for one_path in population[minIndex]]
     link = sum(directional_N_paths)
-    print(link)
+    print('best solution (link): \n', link)
 
 if __name__ == "__main__":
 
@@ -278,7 +286,7 @@ if __name__ == "__main__":
     population_size = 20
     elitism_cutoff = 2
     loop_limit = 100
-    evolution_depth = 30
+    evolution_depth = 1000
 
     """initialization for buses"""
     # # of buses
@@ -292,6 +300,8 @@ if __name__ == "__main__":
     ])
     intervalNum = demand.shape[-1]
     maxWorkingHour = 4
+    checkRushHourFlag = True
+    checkMaxWorkingHourFlag = True
 
     # run main function
     run_evolution(population_size, evolution_depth, elitism_cutoff)
