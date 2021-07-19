@@ -1,6 +1,6 @@
 """
-Author: Alison Yao
-Last Updated @ Jun 19, 2021
+Author: Alison Yao (yy2564@nyu.edu)
+Last Updated @ July 9, 2021
 """
 
 import random
@@ -286,7 +286,7 @@ if __name__ == "__main__":
     population_size = 20
     elitism_cutoff = 2
     loop_limit = 100
-    evolution_depth = 1000
+    evolution_depth = 10000
 
     """initialization for buses"""
     # # of buses
