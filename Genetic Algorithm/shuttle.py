@@ -1,6 +1,6 @@
 """
 Author: Alison Yao (yy2564@nyu.edu)
-Last Updated @ July 9, 2021
+Last Updated @ July 28, 2021
 """
 
 import random
@@ -54,7 +54,7 @@ def decode_one_path(one_path):
         i, previous_node = j, current_node
     return np.array(decoded).T
 
-def meet_demand(binary_N_paths):
+def meet_demand(binary_N_paths, tolerance):
     '''
     meet demand
     '''
@@ -62,42 +62,39 @@ def meet_demand(binary_N_paths):
     directional_N_paths = [decode_one_path(one_path) for one_path in binary_N_paths]
     link = sum(directional_N_paths)
     # we hope every demand is met
-    return np.greater_equal(link[1:3, :] * D, demand).all()
+    return np.greater_equal(link[1:3, :] * D, demand - tolerance).all()
 
 def rush_hour_constraint(binary_N_paths):
     '''
     during rush hours, one interval is not enough time to commute
     '''
+    violationCount = 0
     for one_path in binary_N_paths:
-        if one_path[1] + one_path[2] == 2:
-            print("r", end="")
-            return False
-        if one_path[2] + one_path[3] == 2:
-            print("r", end="")
-            return False
+        # morning rush hour
+        if one_path[1] + one_path[2] == 2 or one_path[2] + one_path[3] == 2:
+            violationCount += 1
+        # evening rush hour
         if one_path[21] + one_path[22] == 2:
-            print("r", end="")
-            return False
-    return True
+            violationCount += 1
+    return int(violationCount) == 0, int(violationCount)
 
 def max_working_hour_constraint(binary_N_paths):
     '''
     make sure that no driver works more than a few hours continuously
     '''
+    violationCount = 0
     for one_path in binary_N_paths:
-        num = 0
+        num, num_list = 0, []
         for i, node in enumerate(one_path):
             num += node
             if i+1 == len(one_path):
-                if num >= maxWorkingHour * intervalDuration:
-                    print("w", end="")
-                    return False
-                return True
+                num_list.append(num)
+                continue
             if node == 1 and one_path[i+1] == 0:
-                if num >= maxWorkingHour * intervalDuration:
-                    print("w", end="")
-                    return False
+                num_list.append(num)
                 num = 0
+        violationCount += sum(np.array(num_list) > maxWorkingHour / intervalDuration)
+    return violationCount == 0, violationCount
 
 def check_feasibility(binary_N_paths, checkRushHour=False, checkMaxWorkingHour=False):
     '''
@@ -109,12 +106,16 @@ def check_feasibility(binary_N_paths, checkRushHour=False, checkMaxWorkingHour=F
     # print('binary_N_paths:\n', binary_N_paths)
     rushHour, maxWorkingHour = True, True
     if checkRushHour:
-        rushHour = rush_hour_constraint(binary_N_paths)
+        rushHour, _ = rush_hour_constraint(binary_N_paths)
     if checkMaxWorkingHour:
-        maxWorkingHour = max_working_hour_constraint(binary_N_paths)
-    demandFlag = meet_demand(binary_N_paths)
-    if demandFlag == False:
+        maxWorkingHour, _ = max_working_hour_constraint(binary_N_paths)
+    demandFlag = meet_demand(binary_N_paths, tolerance)
+    if not demandFlag:
         print("d", end="")
+    if not rushHour:
+        print("r", end="")
+    if not maxWorkingHour:
+        print("w", end="")
     return demandFlag and rushHour and maxWorkingHour
 
 def fitness(binary_N_paths):
@@ -123,6 +124,7 @@ def fitness(binary_N_paths):
     the lower the better!!
     """
     total_cost = 0
+    # basic cost
     for one_path in binary_N_paths:
         target_indices = np.where(one_path == 1)[0]
         if len(target_indices) == 0:
@@ -137,6 +139,10 @@ def fitness(binary_N_paths):
             total_cost += 180
         else:
             total_cost += (20 * intervalDuration) * duration_interval_num
+    # add penalty
+    rushHour, rushHourViolatonNum = rush_hour_constraint(binary_N_paths)
+    maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(binary_N_paths)
+    total_cost += rushHourViolatonNum * rushHourViolationPenalty + maxWorkingHourViolationNum * maxWorkingHourViolationPenalty
     return total_cost
 
 def generate_population(population_size):
@@ -248,6 +254,7 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
     print('Initial Min Cost:', min(population_fitnesses))
     # keep track of improvement
     progress = []
+    # fitness_range = []
     # start evolving :)
     for i in range(evolution_depth):
         progress.append(min(population_fitnesses))
@@ -255,18 +262,28 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
         elitism_begin = time.time()
         elites = elitism(population, population_fitnesses, elitism_cutoff)
         elitism_end = time.time()
-        print('Elites selected!', elitism_end - elitism_begin)
+        print(f'Elites selected! Time: {elitism_end - elitism_begin:.4f}s')
         children_begin = time.time()
         children = crossover_mutation(population, population_fitnesses, population_size, elitism_cutoff)
         children_end = time.time()
-        print('\nChildren created!', children_end - children_begin)
+        print(f'\nChildren created! Time: {children_end - children_begin:.4f}s')
         population = np.concatenate([elites, children])
         population_fitnesses = [fitness(binary_N_paths) for binary_N_paths in population]
+        # fitness_range.append(max(population_fitnesses) - min(population_fitnesses))
         evol_end = time.time()
         print("Min Cost:", min(population_fitnesses))
-        print(f'----------------------------- generation {i + 1} evolved! {evol_end - elitism_begin} -----------------------------\n')
+        print(f'---------------------- generation {i + 1} evolved! Time: {evol_end - elitism_begin:4f}s ----------------------\n')
+    
+    # fitness range
+    # print(fitness_range)
+    # fitness_range = np.array(fitness_range)
+    # print(f'  Mean: {fitness_range.mean()}')
+    # print(f'Median: {np.median(fitness_range)}')
+    # print(f'   Max: {fitness_range.max()}')
+    # print(f'   Min: {fitness_range.min()}')
+    
     # plot results
-    result_stats(progress)
+    # result_stats(progress)
 
     # print best solution
     minIndex = population_fitnesses.index(min(population_fitnesses))
@@ -279,6 +296,7 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
     link = sum(directional_N_paths)
     print('best solution (link): \n', link)
 
+
 if __name__ == "__main__":
 
     """initialization for genetic algo"""
@@ -286,13 +304,14 @@ if __name__ == "__main__":
     population_size = 20
     elitism_cutoff = 2
     loop_limit = 100
-    evolution_depth = 10000
+    evolution_depth = 1000
 
     """initialization for buses"""
     # # of buses
     N = 11
     # #seats on each bus
     D = 40
+    tolerance = 0
     intervalDuration = 0.5
     demand = np.array([
         [114,106,132,132,117,83,57,52,13,8,18,13,26,3,13,10,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0], 
@@ -302,6 +321,8 @@ if __name__ == "__main__":
     maxWorkingHour = 4
     checkRushHourFlag = True
     checkMaxWorkingHourFlag = True
+    rushHourViolationPenalty = 5
+    maxWorkingHourViolationPenalty = 3
 
     # run main function
     run_evolution(population_size, evolution_depth, elitism_cutoff)
