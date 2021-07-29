@@ -1,57 +1,10 @@
 import numpy as np
 
-
-one_path = np.array([1, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1])
-# num = 0
-# for i, node in enumerate(one_path):
-#     num += node
-#     if i+1 == len(one_path):
-#         print(num)
-#         print('Ends1')
-#         break
-#     if node == 1 and one_path[i+1] == 0:
-#         print(num)
-#         num = 0
-
-
-# for one_path in binary_N_paths:
-#     num = 0
-#     for i, node in enumerate(one_path):
-#         num += node
-#         if i+1 == len(one_path):
-#             if num >= maxWorkingHour * intervalDuration:
-#                 return False
-#             return True
-#         if node == 1 and one_path[i+1] == 0:
-#             if num >= maxWorkingHour * intervalDuration:
-#                 return False
-#             num = 0
-
-def max_working_hour_constraint(binary_N_paths):
-    '''
-    make sure that no driver works more than a few hours continuously
-    '''
-    violationCount = 0
-    for one_path in binary_N_paths:
-        num, num_list = 0, []
-        for i, node in enumerate(one_path):
-            num += node
-            if i+1 == len(one_path):
-                num_list.append(num)
-                continue
-            if node == 1 and one_path[i+1] == 0:
-                num_list.append(num)
-                num = 0
-        violationCount += sum(np.array(num_list) > maxWorkingHour / intervalDuration)
-    return violationCount == 0, violationCount
-
-binary_N_paths = np.array([
-    [0, 1, 1, 0, 1, 1, 1],
-    [0, 1, 0, 1, 1, 1, 0],
-    [1, 1, 0, 1, 1, 1, 0]
+demand = np.array([
+    [114,106,132,132,117,83,57,52,13,8,18,13,26,3,13,10,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0], 
+    [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
 ])
 
-maxWorkingHour = 1
-intervalDuration = 0.5
-# print(maxWorkingHour / intervalDuration)
-print(max_working_hour_constraint(binary_N_paths))
+demand0 = demand * 0.5
+demand0 = demand0.astype(int)
+print(demand0)

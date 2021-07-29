@@ -74,7 +74,9 @@ def rush_hour_constraint(binary_N_paths):
         if one_path[1] + one_path[2] == 2 or one_path[2] + one_path[3] == 2:
             violationCount += 1
         # evening rush hour
-        if one_path[21] + one_path[22] == 2:
+        # if one_path[21] + one_path[22] == 2:
+        #     violationCount += 1
+        if one_path[4] + one_path[5] == 2:
             violationCount += 1
     return int(violationCount) == 0, int(violationCount)
 
@@ -106,19 +108,19 @@ def check_feasibility(binary_N_paths, checkRushHour=False, checkMaxWorkingHour=F
     # print('binary_N_paths:\n', binary_N_paths)
     rushHour, maxWorkingHour = True, True
     if checkRushHour:
-        rushHour, _ = rush_hour_constraint(binary_N_paths)
+        rushHour, rushHourViolationNum = rush_hour_constraint(binary_N_paths)
     if checkMaxWorkingHour:
-        maxWorkingHour, _ = max_working_hour_constraint(binary_N_paths)
+        maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(binary_N_paths)
     demandFlag = meet_demand(binary_N_paths, tolerance)
-    if not demandFlag:
-        print("d", end="")
+    # if not demandFlag:
+    #     print("d", end="")
     if not rushHour:
-        print("r", end="")
+        print("r"+str(rushHourViolationNum), end="")
     if not maxWorkingHour:
-        print("w", end="")
+        print("w"+str(maxWorkingHourViolationNum), end="")
     return demandFlag and rushHour and maxWorkingHour
 
-def fitness(binary_N_paths):
+def fitness(binary_N_paths, addPenalty=False):
     """
     objective function ish -> natural selection to pick the good ones
     the lower the better!!
@@ -140,23 +142,24 @@ def fitness(binary_N_paths):
         else:
             total_cost += (20 * intervalDuration) * duration_interval_num
     # add penalty
-    rushHour, rushHourViolatonNum = rush_hour_constraint(binary_N_paths)
-    maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(binary_N_paths)
-    total_cost += rushHourViolatonNum * rushHourViolationPenalty + maxWorkingHourViolationNum * maxWorkingHourViolationPenalty
+    if addPenalty:
+        rushHour, rushHourViolatonNum = rush_hour_constraint(binary_N_paths)
+        maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(binary_N_paths)
+        total_cost += rushHourViolatonNum * rushHourViolationPenalty + maxWorkingHourViolationNum * maxWorkingHourViolationPenalty
     return total_cost
 
 def generate_population(population_size):
-    population, fitness_scores = [], []
+    population, fitness_scores_add_penalty = [], []
     while len(population) < population_size:
         binary_N_paths = generate_random_N_paths(N, intervalNum)
         if check_feasibility(binary_N_paths):
             population.append(binary_N_paths)
-            fitness_score = fitness(binary_N_paths)
-            fitness_scores.append(fitness_score)
+            fitness_score_add_penalty = fitness(binary_N_paths, addPenalty=True)
+            fitness_scores_add_penalty.append(fitness_score_add_penalty)
             continue
-        else:
-            print("i", end="")
-    return np.array(population), np.array(fitness_scores)
+        # else:
+        #     print("i", end="")
+    return np.array(population), np.array(fitness_scores_add_penalty)
 
 def elitism(population, fitness_scores, elitism_cutoff=2):
     elite_indices = np.argpartition(np.array(fitness_scores), elitism_cutoff)[:elitism_cutoff]
@@ -175,12 +178,14 @@ def crossover_mutation(population, fitness_scores, population_size, elitism_cuto
         )
         kid1, kid2 = single_point_crossover(parents[0], parents[1])
         if kid1 is not None:
-            kid1 = single_mutation(kid1)
+            for _ in range(mutation_num):
+                kid1 = single_mutation(kid1)
             children.append(kid1)
         if len(children) == population_size - elitism_cutoff:
             return np.array(children)
         if kid2 is not None:
-            kid2 = single_mutation(kid2)
+            for _ in range(mutation_num):
+                kid2 = single_mutation(kid2)
             children.append(kid2)
         if len(children) == population_size - elitism_cutoff:
             return np.array(children)
@@ -188,8 +193,6 @@ def crossover_mutation(population, fitness_scores, population_size, elitism_cuto
 def single_point_crossover(parent1, parent2):
     """
     Randomly pick the good ones and cross them over
-    TODO: try multi-point
-    TODO: try multi parents
     """
     assert parent1.size == parent2.size
     length = len(parent1)
@@ -206,8 +209,8 @@ def single_point_crossover(parent1, parent2):
             return kid1, None
         elif not check_feasibility(kid1) and check_feasibility(kid2):
             return None, kid2
-        else:
-            print("c", end="")
+        # else:
+            # print("c", end="")
         count += 1
     return parent1, parent2
 
@@ -223,75 +226,85 @@ def single_mutation(binary_N_paths):
         binary_N_paths_copy[mutate_path][mutate_node] = abs(1 - binary_N_paths_copy[mutate_path][mutate_node])
         if check_feasibility(binary_N_paths_copy):
             return binary_N_paths_copy
-        else:
-            print("m", end="")
+        # else:
+        #     print("m", end="")
         count += 1
     return binary_N_paths    
 
-def result_stats(progress):
+def result_stats(progress_with_penalty, progress):
     """
-    print important stats & visulize progress
+    print important stats & visulize progress_with_penalty
     """
     print('**************************************************************')
+    print("Progress_with_penalty of improvement:", progress_with_penalty)
     print("Progress of improvement:", progress)
-    print("Improvement Rate:", abs(progress[-1] - progress[0])/progress[0])
+    print("Improvement Rate of progress:", abs(progress[-1] - progress[0])/progress[0])
     print('**************************************************************')
-    plt.plot(progress, data=progress)
+    plt.plot(progress_with_penalty, data=progress_with_penalty, label='with penalty')
+    plt.plot(progress, data=progress, label='no penalty')
     plt.xlabel("Generation")
     plt.ylabel("Cost")
+    plt.legend()
     plt.show()
 
 def run_evolution(population_size, evolution_depth, elitism_cutoff):
     '''
     Main function of Genetic Algorithm
-    TODO: figure out a way to check the final outcome fits the constraints
     '''
     tic = time.time()
+
     # first initialize a population 
-    population, population_fitnesses = generate_population(population_size)
+    population, population_fitnesses_add_penalty = generate_population(population_size)
     initialization_end = time.time()
     print('\nInitialization Done!', initialization_end - tic)
-    print('Initial Min Cost:', min(population_fitnesses))
+    population_fitnesses = [fitness(binary_N_paths) for binary_N_paths in population]
+    print(f'Initial Min Cost: {min(population_fitnesses_add_penalty)} -> {min(population_fitnesses)}')
     # keep track of improvement
-    progress = []
-    # fitness_range = []
+    progress_with_penalty, progress = [], []
+    
     # start evolving :)
     for i in range(evolution_depth):
+        progress_with_penalty.append(min(population_fitnesses_add_penalty))
         progress.append(min(population_fitnesses))
         print(f'----------------------------- generation {i + 1} Start! -----------------------------')
         elitism_begin = time.time()
-        elites = elitism(population, population_fitnesses, elitism_cutoff)
+        elites = elitism(population, population_fitnesses_add_penalty, elitism_cutoff)
         elitism_end = time.time()
-        print(f'Elites selected! Time: {elitism_end - elitism_begin:.4f}s')
+        print('Elites selected!')
         children_begin = time.time()
-        children = crossover_mutation(population, population_fitnesses, population_size, elitism_cutoff)
+        children = crossover_mutation(population, population_fitnesses_add_penalty, population_size, elitism_cutoff)
         children_end = time.time()
-        print(f'\nChildren created! Time: {children_end - children_begin:.4f}s')
+        print('Children created!')
         population = np.concatenate([elites, children])
+        population_fitnesses_add_penalty = [fitness(binary_N_paths, addPenalty=True) for binary_N_paths in population]
         population_fitnesses = [fitness(binary_N_paths) for binary_N_paths in population]
-        # fitness_range.append(max(population_fitnesses) - min(population_fitnesses))
+        
         evol_end = time.time()
-        print("Min Cost:", min(population_fitnesses))
-        print(f'---------------------- generation {i + 1} evolved! Time: {evol_end - elitism_begin:4f}s ----------------------\n')
-    
-    # fitness range
-    # print(fitness_range)
-    # fitness_range = np.array(fitness_range)
-    # print(f'  Mean: {fitness_range.mean()}')
-    # print(f'Median: {np.median(fitness_range)}')
-    # print(f'   Max: {fitness_range.max()}')
-    # print(f'   Min: {fitness_range.min()}')
+        print(f"Min Cost: {min(population_fitnesses_add_penalty)} -> {min(population_fitnesses)}")
+        # check best solution feasibility
+        minIndex = population_fitnesses_add_penalty.index(min(population_fitnesses_add_penalty))
+        best_solution = population[minIndex]
+        allFeasibilityFlag = check_feasibility(best_solution, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag)
+        print("\nAll constraints met?", allFeasibilityFlag)
+
+        # print best solution
+        print('best solution (path):\n', best_solution)
+        directional_N_paths = [decode_one_path(one_path) for one_path in population[minIndex]]
+        link = sum(directional_N_paths)
+        print('best solution (link): \n', link)
+
+        print(f'---------------------- generation {i + 1} evolved! Time: {evol_end - elitism_begin:.4f}s ----------------------\n')
     
     # plot results
-    # result_stats(progress)
+    result_stats(progress_with_penalty, progress)
 
     # print best solution
-    minIndex = population_fitnesses.index(min(population_fitnesses))
+    minIndex = population_fitnesses_add_penalty.index(min(population_fitnesses_add_penalty))
     best_solution = population[minIndex]
     print('best solution (path):\n', best_solution)
+
     # check if all constraints are met (ideally True)
     print("\nAll constraints met?", check_feasibility(best_solution, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag))
-
     directional_N_paths = [decode_one_path(one_path) for one_path in population[minIndex]]
     link = sum(directional_N_paths)
     print('best solution (link): \n', link)
@@ -303,6 +316,7 @@ if __name__ == "__main__":
     initial_prob = 0.8
     population_size = 20
     elitism_cutoff = 2
+    mutation_num = 1
     loop_limit = 100
     evolution_depth = 1000
 
@@ -313,16 +327,26 @@ if __name__ == "__main__":
     D = 40
     tolerance = 0
     intervalDuration = 0.5
+    # numerical example 1
     demand = np.array([
         [114,106,132,132,117,83,57,52,13,8,18,13,26,3,13,10,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0], 
         [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
     ])
+    # numerical example 2
+    demand = demand * 0.5
+    demand.astype(int)
+    # toy numerical example
+    # demand = np.array([
+    #     [60, 120, 60,  10,  0,  0,  0], 
+    #     [ 0,  0, 40, 60, 100, 20, 20]
+    # ])
+
     intervalNum = demand.shape[-1]
     maxWorkingHour = 4
     checkRushHourFlag = True
     checkMaxWorkingHourFlag = True
-    rushHourViolationPenalty = 5
-    maxWorkingHourViolationPenalty = 3
+    rushHourViolationPenalty = 7
+    maxWorkingHourViolationPenalty = 5
 
     # run main function
     run_evolution(population_size, evolution_depth, elitism_cutoff)
