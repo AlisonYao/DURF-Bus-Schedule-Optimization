@@ -74,10 +74,10 @@ def rush_hour_constraint(binary_N_paths):
         if one_path[1] + one_path[2] == 2 or one_path[2] + one_path[3] == 2:
             violationCount += 1
         # evening rush hour
-        # if one_path[21] + one_path[22] == 2:
-        #     violationCount += 1
-        if one_path[4] + one_path[5] == 2:
+        if one_path[21] + one_path[22] == 2:
             violationCount += 1
+        # if one_path[4] + one_path[5] == 2:
+        #     violationCount += 1
     return int(violationCount) == 0, int(violationCount)
 
 def max_working_hour_constraint(binary_N_paths):
