@@ -2,4 +2,6 @@
 
 ## Genetic Algorithm
 
-please see `shuttle.py` code
+base: please see `shuttle.py` code
+
+multi-node: please see `shuttle_multi_node.py` code
