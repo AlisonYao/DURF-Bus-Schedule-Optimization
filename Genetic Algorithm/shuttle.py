@@ -10,12 +10,15 @@ import matplotlib.pyplot as plt
 
 
 def generate_random_N_paths(N, path_length):
-    binary_N_paths = []
+    '''
+    Randomize N paths (1 path is like 010101010101) to generate one solution
+    '''
+    one_solution = []
     for _ in range(N):
         # set the weights to initialize feasible solution faster
         one_path = random.choices(population=[0, 1], weights=[1-initial_prob, initial_prob], k=path_length)
-        binary_N_paths.append(one_path)
-    return np.array(binary_N_paths)
+        one_solution.append(one_path)
+    return np.array(one_solution)
 
 def decode_one_path(one_path):
     decoded = []
@@ -71,7 +74,7 @@ def rush_hour_constraint(binary_N_paths):
     violationCount = 0
     for one_path in binary_N_paths:
         # morning rush hour
-        if one_path[1] + one_path[2] == 2 or one_path[2] + one_path[3] == 2:
+        if one_path[1] + one_path[2] == 2: # or one_path[2] + one_path[3] == 2:
             violationCount += 1
         # evening rush hour
         if one_path[21] + one_path[22] == 2:
@@ -333,8 +336,8 @@ if __name__ == "__main__":
         [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
     ])
     # numerical example 2
-    demand = demand * 0.5
-    demand.astype(int)
+    # demand = demand * 0.5
+    # demand.astype(int)
     # toy numerical example
     # demand = np.array([
     #     [60, 120, 60,  10,  0,  0,  0], 
