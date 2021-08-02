@@ -1,6 +1,8 @@
 """
 Author: Alison Yao (yy2564@nyu.edu)
-Last Updated @ July 29, 2021
+Last Updated @ August 2, 2021
+
+version 2 converts the demand into penalty
 """
 
 import random
@@ -57,15 +59,17 @@ def decode_one_path(one_path):
         i, previous_node = j, current_node
     return np.array(decoded).T
 
-def meet_demand(binary_N_paths, tolerance):
+def demand_constraint(binary_N_paths, tolerance):
     '''
-    meet demand
+    make sure the demand is met
     '''
     # get the link representation first
     directional_N_paths = [decode_one_path(one_path) for one_path in binary_N_paths]
     link = sum(directional_N_paths)
-    # we hope every demand is met
-    return np.greater_equal(link[1:3, :] * D, demand - tolerance).all()
+    supplyDemandDifference = np.greater_equal(demand - tolerance, link[1:3, :] * D)
+    mask = (demand - tolerance) - (link[1:3, :] * D)
+    missedDemandNum = np.sum(supplyDemandDifference * mask)
+    return int(missedDemandNum) == 0, int(missedDemandNum)
 
 def rush_hour_constraint(binary_N_paths):
     '''
@@ -99,9 +103,9 @@ def max_working_hour_constraint(binary_N_paths):
                 num_list.append(num)
                 num = 0
         violationCount += sum(np.array(num_list) > maxWorkingHour / intervalDuration)
-    return violationCount == 0, violationCount
+    return int(violationCount) == 0, int(violationCount)
 
-def check_feasibility(binary_N_paths, checkRushHour=False, checkMaxWorkingHour=False):
+def check_feasibility(binary_N_paths, checkDemand=True, checkRushHour=False, checkMaxWorkingHour=False):
     '''
     s.t. constraints (make sure initial paths & crossover paths & mutated paths are feasible)
     constraint1: meet demand
@@ -109,14 +113,15 @@ def check_feasibility(binary_N_paths, checkRushHour=False, checkMaxWorkingHour=F
     constraint3: make sure that no driver works more than a few hours continuously (optional)
     '''
     # print('binary_N_paths:\n', binary_N_paths)
-    rushHour, maxWorkingHour = True, True
+    demandFlag, rushHour, maxWorkingHour = True, True, True
+    if checkDemand:
+        demandFlag, demandViolationNum = demand_constraint(binary_N_paths, tolerance)
     if checkRushHour:
         rushHour, rushHourViolationNum = rush_hour_constraint(binary_N_paths)
     if checkMaxWorkingHour:
         maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(binary_N_paths)
-    demandFlag = meet_demand(binary_N_paths, tolerance)
-    # if not demandFlag:
-    #     print("d", end="")
+    if not demandFlag:
+        print("d"+str(demandViolationNum), end="")
     if not rushHour:
         print("r"+str(rushHourViolationNum), end="")
     if not maxWorkingHour:
@@ -146,22 +151,21 @@ def fitness(binary_N_paths, addPenalty=False):
             total_cost += (20 * intervalDuration) * duration_interval_num
     # add penalty
     if addPenalty:
+        demandFlag, demandViolationNum = demand_constraint(binary_N_paths, tolerance)
         rushHour, rushHourViolatonNum = rush_hour_constraint(binary_N_paths)
         maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(binary_N_paths)
-        total_cost += rushHourViolatonNum * rushHourViolationPenalty + maxWorkingHourViolationNum * maxWorkingHourViolationPenalty
+        total_cost += alpha * demandViolationNum * demandViolationPenalty + rushHourViolatonNum * rushHourViolationPenalty + maxWorkingHourViolationNum * maxWorkingHourViolationPenalty
     return total_cost
 
 def generate_population(population_size):
     population, fitness_scores_add_penalty = [], []
     while len(population) < population_size:
         binary_N_paths = generate_random_N_paths(N, intervalNum)
-        if check_feasibility(binary_N_paths):
-            population.append(binary_N_paths)
-            fitness_score_add_penalty = fitness(binary_N_paths, addPenalty=True)
-            fitness_scores_add_penalty.append(fitness_score_add_penalty)
-            continue
-        # else:
-        #     print("i", end="")
+        population.append(binary_N_paths)
+        fitness_score_add_penalty = fitness(binary_N_paths, addPenalty=True)
+        fitness_scores_add_penalty.append(fitness_score_add_penalty)
+        print("i", end="")
+        continue
     return np.array(population), np.array(fitness_scores_add_penalty)
 
 def elitism(population, fitness_scores, elitism_cutoff=2):
@@ -202,40 +206,38 @@ def single_point_crossover(parent1, parent2):
     if length < 2:
         return parent1, parent2
     count = 0
+    best_kid1, best_kid2 = None, None
+    best_kid1_fitness, best_kid2_fitness = 10000000, 10000000
     while count <= loop_limit:
         cut = random.randint(1, length - 1)
         kid1 = np.append(parent1[0:cut, :], parent2[cut:, :]).reshape((N, intervalNum))
         kid2 = np.append(parent2[0:cut, :], parent1[cut:, :]).reshape((N, intervalNum))
-        if check_feasibility(kid1) and check_feasibility(kid2):
-            return kid1, kid2
-        elif check_feasibility(kid1) and not check_feasibility(kid2):
-            return kid1, None
-        elif not check_feasibility(kid1) and check_feasibility(kid2):
-            return None, kid2
-        # else:
-            # print("c", end="")
+        current_kid1_fitness, current_kid2_fitness = fitness(kid1, addPenalty=True), fitness(kid2, addPenalty=True)
+        if current_kid1_fitness < best_kid1_fitness:
+            best_kid1 = kid1
+        if current_kid2_fitness < best_kid2_fitness:
+            best_kid2 = kid2
+        # print("c", end="")
         count += 1
-    return parent1, parent2
+    return best_kid1, best_kid2
 
 def single_mutation(binary_N_paths):
     """
     Mutate only one node in one path for now
-    if not feasible after the first mutation, then keep mutating till feasibility
-    if no mutation reaches feasibility, return the original solution
-    Empirically speaking, if the first few mutations are infeasible, it is very unlikely to become feasible
     """
-    count = 0
+    count, bestFitness = 0, 10000000
     binary_N_paths_copy = binary_N_paths.copy()
+    best_binary_N_paths_copy = None
     while count <= loop_limit:
         mutate_path = np.random.randint(0, N)
         mutate_node = np.random.randint(0, intervalNum)
         binary_N_paths_copy[mutate_path][mutate_node] = abs(1 - binary_N_paths_copy[mutate_path][mutate_node])
-        if check_feasibility(binary_N_paths_copy):
-            return binary_N_paths_copy
-        # else:
-        #     print("m", end="")
+        currentFitness = fitness(binary_N_paths_copy, addPenalty=True)
+        if currentFitness < bestFitness:
+            best_binary_N_paths_copy = binary_N_paths_copy
+        # print("m", end="")
         count += 1
-    return binary_N_paths    
+    return best_binary_N_paths_copy    
 
 def result_stats(progress_with_penalty, progress):
     """
@@ -290,7 +292,7 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
         # check best solution feasibility
         minIndex = population_fitnesses_add_penalty.index(min(population_fitnesses_add_penalty))
         best_solution = population[minIndex]
-        allFeasibilityFlag = check_feasibility(best_solution, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag)
+        allFeasibilityFlag = check_feasibility(best_solution, checkDemand=checkDemandFlag, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag)
         print("\nAll constraints met?", allFeasibilityFlag)
 
         # print best solution
@@ -310,7 +312,7 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
     print('best solution (path):\n', best_solution)
 
     # check if all constraints are met (ideally True)
-    print("\nAll constraints met?", check_feasibility(best_solution, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag))
+    print("\nAll constraints met?", check_feasibility(best_solution, checkDemand=checkDemandFlag, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag))
     directional_N_paths = [decode_one_path(one_path) for one_path in population[minIndex]]
     link = sum(directional_N_paths)
     print('best solution (link): \n', link)
@@ -339,8 +341,8 @@ if __name__ == "__main__":
         [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
     ])
     # numerical example 2
-    demand = demand * 0.5
-    demand = demand.astype(int)
+    # demand = demand * 0.5
+    # demand.astype(int)
     # toy numerical example
     # demand = np.array([
     #     [60, 120, 60,  10,  0,  0,  0], 
@@ -349,10 +351,8 @@ if __name__ == "__main__":
 
     intervalNum = demand.shape[-1]
     maxWorkingHour = 4
-    checkRushHourFlag = True
-    checkMaxWorkingHourFlag = True
-    rushHourViolationPenalty = 7
-    maxWorkingHourViolationPenalty = 5
+    checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag = True, True, True
+    alpha, demandViolationPenalty, rushHourViolationPenalty, maxWorkingHourViolationPenalty = 0.5, 1, 7, 5
 
     # run main function
     run_evolution(population_size, evolution_depth, elitism_cutoff)

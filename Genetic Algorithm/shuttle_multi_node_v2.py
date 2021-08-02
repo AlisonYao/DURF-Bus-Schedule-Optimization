@@ -1,6 +1,8 @@
 """
 Author: Alison Yao (yy2564@nyu.edu)
 Last Updated @ August 2, 2021
+
+version 2 converts the demand into penalty
 """
 
 import random
