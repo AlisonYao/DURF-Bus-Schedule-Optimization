@@ -93,9 +93,11 @@ def decode_one_path(one_path_double_digit):
                     decoded.append([0, 0, 0, 0, 0, 1, 0])
                 else:
                     print('SOMETHING IS WRONG2!!!')
-            print(two_digits, initial_node, last_visited)
     decoded = np.array(decoded).T
     decoded_sum = decoded.sum(axis=0)
+    if sum(decoded_sum) == 0:
+        decoded[0, :] = 1 # ??????????????????????????????????
+        return decoded
     k = 0
     while decoded_sum[k] == 0:
         decoded[initial_node, k] = 1
@@ -106,19 +108,23 @@ def meet_demand(binary_N_paths, tolerance):
     '''
     meet demand
     '''
-    pass
+    directional_N_paths = [decode_one_path(one_path) for one_path in binary_N_paths]
+    link = sum(directional_N_paths)
+    link_GC = link[:4, :]
+    link_PS = link[-1:2:-1, :]
+    return np.greater_equal(link_GC[1:3, :] * D, demand_GC - tolerance).all() and np.greater_equal(link_PS[1:3, :] * D, demand_PS - tolerance).all()
 
 def rush_hour_constraint(binary_N_paths):
     '''
     during rush hours, one interval is not enough time to commute
     '''
-    pass
+    return True, 0
 
 def max_working_hour_constraint(binary_N_paths):
     '''
     make sure that no driver works more than a few hours continuously
     '''
-    pass
+    return True, 0
 
 def check_feasibility(binary_N_paths, checkRushHour=False, checkMaxWorkingHour=False):
     '''
@@ -127,7 +133,19 @@ def check_feasibility(binary_N_paths, checkRushHour=False, checkMaxWorkingHour=F
     constraint2: during rush hours, one interval is not enough time to commute (optional)
     constraint3: make sure that no driver works more than a few hours continuously (optional)
     '''
-    pass
+    rushHour, maxWorkingHour = True, True
+    if checkRushHour:
+        rushHour, rushHourViolationNum = rush_hour_constraint(binary_N_paths)
+    if checkMaxWorkingHour:
+        maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(binary_N_paths)
+    demandFlag = meet_demand(binary_N_paths, tolerance)
+    if not demandFlag:
+        print("d", end="")
+    if not rushHour:
+        print("r"+str(rushHourViolationNum), end="")
+    if not maxWorkingHour:
+        print("w"+str(maxWorkingHourViolationNum), end="")
+    return demandFlag and rushHour and maxWorkingHour
 
 def fitness(binary_N_paths, addPenalty=False):
     """
@@ -137,7 +155,14 @@ def fitness(binary_N_paths, addPenalty=False):
     pass
 
 def generate_population(population_size):
-    pass
+    population = []
+    while len(population) < population_size:
+        binary_N_paths = generate_random_N_paths(N, intervalNum)
+        if check_feasibility(binary_N_paths):
+            population.append(binary_N_paths)
+        else:
+            print("i", end="")
+    return np.array(population)
 
 def elitism(population, fitness_scores, elitism_cutoff=2):
     pass
@@ -178,42 +203,44 @@ if __name__ == "__main__":
     """initialization for genetic algo"""
     initial_prob = 0.8
     jinyang_prob = 0.1
-    print(generate_random_N_paths(3, 4))
-    # population_size = 20
-#     elitism_cutoff = 2
-#     mutation_num = 1
-#     loop_limit = 100
-#     evolution_depth = 1000
+    population_size = 20
+    elitism_cutoff = 2
+    mutation_num = 1
+    loop_limit = 100
+    evolution_depth = 1000
 
-#     """initialization for buses"""
-#     # # of buses
-#     N = 11
-#     # #seats on each bus
-#     D = 40
-#     tolerance = 0
-#     intervalDuration = 0.5
+    """initialization for buses"""
+    # # of buses
+    N = 11
+    # #seats on each bus
+    D = 40
+    tolerance = 0
+    intervalDuration = 0.5
     # numerical example 1
-    demand_GC = np.array([
+    demand = np.array([
         [114,106,132,132,117,83,57,52,13,8,18,13,26,3,13,10,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0], 
         [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
     ])
-    demand_PS = demand_GC / 9
+    # numerical example 2
+    demand = demand * 0.5
+    demand.astype(int)
+    # toy numerical example
+    demand = np.array([
+        [60, 120, 60,  10,  0,  0,  0], 
+        [ 0,  0, 40, 60, 100, 20, 20]
+    ])
+    demand_GC = demand * 0.9
+    demand_GC.astype(int)
+    demand_PS = demand * 0.1
     demand_PS.astype(int)
-#     # numerical example 2
-#     demand = demand * 0.5
-#     demand.astype(int)
-#     # toy numerical example
-#     # demand = np.array([
-#     #     [60, 120, 60,  10,  0,  0,  0], 
-#     #     [ 0,  0, 40, 60, 100, 20, 20]
-#     # ])
 
-#     intervalNum = demand.shape[-1]
-#     maxWorkingHour = 4
-#     checkRushHourFlag = True
-#     checkMaxWorkingHourFlag = True
-#     rushHourViolationPenalty = 7
-#     maxWorkingHourViolationPenalty = 5
+    intervalNum = demand.shape[-1]
+    maxWorkingHour = 4
+    checkRushHourFlag = True
+    checkMaxWorkingHourFlag = True
+    rushHourViolationPenalty = 7
+    maxWorkingHourViolationPenalty = 5
 
-#     # run main function
+    # run main function
 #     run_evolution(population_size, evolution_depth, elitism_cutoff)
+    print(generate_population(population_size))
