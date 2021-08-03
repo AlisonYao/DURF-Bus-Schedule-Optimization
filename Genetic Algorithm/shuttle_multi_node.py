@@ -1,6 +1,10 @@
 """
 Author: Alison Yao (yy2564@nyu.edu)
 Last Updated @ August 2, 2021
+
+It seems that this version does not work. 
+The initialization stage is stuck in infeasibility.
+Maybe this time, we have to convert demand into penalty to slowly get to feasibility over time. 
 """
 
 import random
@@ -96,7 +100,7 @@ def decode_one_path(one_path_double_digit):
     decoded = np.array(decoded).T
     decoded_sum = decoded.sum(axis=0)
     if sum(decoded_sum) == 0:
-        decoded[0, :] = 1 # ??????????????????????????????????
+        decoded[0, :] = 1
         return decoded
     k = 0
     while decoded_sum[k] == 0:

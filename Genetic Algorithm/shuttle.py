@@ -79,8 +79,6 @@ def rush_hour_constraint(binary_N_paths):
         # evening rush hour
         if one_path[21] + one_path[22] == 2:
             violationCount += 1
-        # if one_path[4] + one_path[5] == 2:
-        #     violationCount += 1
     return int(violationCount) == 0, int(violationCount)
 
 def max_working_hour_constraint(binary_N_paths):
@@ -168,7 +166,7 @@ def elitism(population, fitness_scores, elitism_cutoff=2):
     elite_indices = np.argpartition(np.array(fitness_scores), elitism_cutoff)[:elitism_cutoff]
     return population[elite_indices, :]
 
-def crossover_mutation(population, fitness_scores, population_size, elitism_cutoff):
+def crossover_mutation(population, population_fitnesses_add_penalty, population_size, elitism_cutoff):
     """
     Randomly pick the good ones and cross them over
     """
@@ -176,7 +174,7 @@ def crossover_mutation(population, fitness_scores, population_size, elitism_cuto
     while True:
         parents = random.choices(
             population=population,
-            weights=[(max(fitness_scores) - score + 1)/(max(fitness_scores) * len(fitness_scores) - sum(fitness_scores) + len(fitness_scores)) for score in fitness_scores],
+            weights=[(max(population_fitnesses_add_penalty) - score + 1)/(max(population_fitnesses_add_penalty) * len(population_fitnesses_add_penalty) - sum(population_fitnesses_add_penalty) + len(population_fitnesses_add_penalty)) for score in population_fitnesses_add_penalty],
             k=2
         )
         kid1, kid2 = single_point_crossover(parents[0], parents[1])
@@ -262,7 +260,7 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
     # first initialize a population 
     population, population_fitnesses_add_penalty = generate_population(population_size)
     initialization_end = time.time()
-    print('\nInitialization Done!', initialization_end - tic)
+    print(f'\nInitialization Done! Time: {initialization_end - tic:.6f}')
     population_fitnesses = [fitness(binary_N_paths) for binary_N_paths in population]
     print(f'Initial Min Cost: {min(population_fitnesses_add_penalty)} -> {min(population_fitnesses)}')
     # keep track of improvement
@@ -275,11 +273,8 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
         print(f'----------------------------- generation {i + 1} Start! -----------------------------')
         elitism_begin = time.time()
         elites = elitism(population, population_fitnesses_add_penalty, elitism_cutoff)
-        elitism_end = time.time()
         print('Elites selected!')
-        children_begin = time.time()
         children = crossover_mutation(population, population_fitnesses_add_penalty, population_size, elitism_cutoff)
-        children_end = time.time()
         print('Children created!')
         population = np.concatenate([elites, children])
         population_fitnesses_add_penalty = [fitness(binary_N_paths, addPenalty=True) for binary_N_paths in population]
