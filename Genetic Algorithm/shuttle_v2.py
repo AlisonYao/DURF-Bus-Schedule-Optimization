@@ -1,6 +1,6 @@
 """
 Author: Alison Yao (yy2564@nyu.edu)
-Last Updated @ August 2, 2021
+Last Updated @ August 3, 2021
 
 version 2 converts the demand into penalty
 """
@@ -205,39 +205,21 @@ def single_point_crossover(parent1, parent2):
     length = len(parent1)
     if length < 2:
         return parent1, parent2
-    count = 0
-    best_kid1, best_kid2 = None, None
-    best_kid1_fitness, best_kid2_fitness = 10000000, 10000000
-    while count <= loop_limit:
-        cut = random.randint(1, length - 1)
-        kid1 = np.append(parent1[0:cut, :], parent2[cut:, :]).reshape((N, intervalNum))
-        kid2 = np.append(parent2[0:cut, :], parent1[cut:, :]).reshape((N, intervalNum))
-        current_kid1_fitness, current_kid2_fitness = fitness(kid1, addPenalty=True), fitness(kid2, addPenalty=True)
-        if current_kid1_fitness < best_kid1_fitness:
-            best_kid1 = kid1
-        if current_kid2_fitness < best_kid2_fitness:
-            best_kid2 = kid2
-        # print("c", end="")
-        count += 1
-    return best_kid1, best_kid2
+    cut = random.randint(1, length - 1)
+    kid1 = np.append(parent1[0:cut, :], parent2[cut:, :]).reshape((N, intervalNum))
+    kid2 = np.append(parent2[0:cut, :], parent1[cut:, :]).reshape((N, intervalNum))
+    # print("c", end="")
+    return kid1, kid2
 
 def single_mutation(binary_N_paths):
     """
     Mutate only one node in one path for now
     """
-    count, bestFitness = 0, 10000000
-    binary_N_paths_copy = binary_N_paths.copy()
-    best_binary_N_paths_copy = None
-    while count <= loop_limit:
-        mutate_path = np.random.randint(0, N)
-        mutate_node = np.random.randint(0, intervalNum)
-        binary_N_paths_copy[mutate_path][mutate_node] = abs(1 - binary_N_paths_copy[mutate_path][mutate_node])
-        currentFitness = fitness(binary_N_paths_copy, addPenalty=True)
-        if currentFitness < bestFitness:
-            best_binary_N_paths_copy = binary_N_paths_copy
-        # print("m", end="")
-        count += 1
-    return best_binary_N_paths_copy    
+    mutate_path = np.random.randint(0, N)
+    mutate_node = np.random.randint(0, intervalNum)
+    binary_N_paths[mutate_path][mutate_node] = abs(1 - binary_N_paths[mutate_path][mutate_node])
+    # print("m", end="")
+    return binary_N_paths
 
 def result_stats(progress_with_penalty, progress):
     """
@@ -326,7 +308,7 @@ if __name__ == "__main__":
     elitism_cutoff = 2
     mutation_num = 1
     loop_limit = 100
-    evolution_depth = 1000
+    evolution_depth = 10000
 
     """initialization for buses"""
     # # of buses
@@ -352,7 +334,7 @@ if __name__ == "__main__":
     intervalNum = demand.shape[-1]
     maxWorkingHour = 4
     checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag = True, True, True
-    alpha, demandViolationPenalty, rushHourViolationPenalty, maxWorkingHourViolationPenalty = 0.5, 1, 7, 5
+    alpha, demandViolationPenalty, rushHourViolationPenalty, maxWorkingHourViolationPenalty = 1, 5, 7, 5
 
     # run main function
     run_evolution(population_size, evolution_depth, elitism_cutoff)
