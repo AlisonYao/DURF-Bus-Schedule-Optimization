@@ -1,6 +1,6 @@
 """
 Author: Alison Yao (yy2564@nyu.edu)
-Last Updated @ August 2, 2021
+Last Updated @ August 4, 2021
 
 version 2 converts the demand into penalty
 """
@@ -28,6 +28,12 @@ def generate_random_N_paths(N, path_length):
             one_solution.append(one_path_double_digit)
     return one_solution
 
+def check_solution_integrity(solution):
+    for one_path_double_digit in solution:
+        if not check_path_integrity(one_path_double_digit):
+            return False
+    return True
+
 def check_path_integrity(one_path_double_digit):
     last_visited = None
     for i in range(len(one_path_double_digit)):
@@ -40,13 +46,11 @@ def check_path_integrity(one_path_double_digit):
                 # following times
                 elif last_visited == 'GC':
                     if two_digits == '01':
-                        print('X', end='')
                         return False
                     else: # '10'
                         last_visited = 'AB'
                 elif last_visited == 'PS':
                     if two_digits == '10':
-                        print('X', end='')
                         return False
                     else: # '01'
                         last_visited = 'AB'
@@ -175,7 +179,6 @@ def check_feasibility(binary_N_paths, checkDemand=True, checkRushHour=False, che
     constraint3: make sure that no driver works more than a few hours continuously (optional)
     '''
     demandFlag, rushHour, maxWorkingHour = True, True, True
-    print('binary_N_paths', binary_N_paths)
     if checkDemand:
         demandFlag, demandViolationNum = demand_constraint(binary_N_paths, tolerance)
     if checkRushHour:
@@ -203,8 +206,8 @@ def fitness(binary_N_paths, addPenalty=False):
         for i in range(len(one_path_double_digit_list)):
             if i % 2 == 0:
                 one_path_single_digit_list.append(int(one_path_double_digit_list[i]) + int(one_path_double_digit_list[i+1]))
-        print('##########')
-        target_indices = np.where(one_path_single_digit_list == 1)[0]
+        one_path_single_digit_np = np.array(one_path_single_digit_list)
+        target_indices = np.where(one_path_single_digit_np == 1)[0]
         if len(target_indices) == 0:
             duration_interval_num = 0
         else:
@@ -275,13 +278,13 @@ def single_point_crossover(parent1, parent2):
     count = 0
     while count <= loop_limit:
         cut = random.randint(1, length - 1) * 2
-        kid1 = parent1[:cut] + parent2[cut:]
-        kid2 = parent2[:cut] + parent1[cut:]
-        if check_path_integrity(kid1) and check_path_integrity(kid2):
+        kid1 = np.array(list(parent1)[:cut] + list(parent2)[cut:])
+        kid2 = np.array(list(parent2)[:cut] + list(parent1)[cut:])
+        if check_solution_integrity(kid1) and check_solution_integrity(kid2):
             return kid1, kid2
-        elif check_path_integrity(kid1) and not check_path_integrity(kid2):
+        elif check_solution_integrity(kid1) and not check_solution_integrity(kid2):
             return kid1, None
-        elif not check_path_integrity(kid1) and check_path_integrity(kid2):
+        elif not check_solution_integrity(kid1) and check_solution_integrity(kid2):
             return None, kid2
         else:
             print("c", end="")
@@ -306,8 +309,8 @@ def single_mutation(binary_N_paths):
         if check_path_integrity(mutated_string):
             binary_N_paths_copy[mutate_path] = mutated_string
             return binary_N_paths_copy
-        else:
-            print("m", end="")
+        # else:
+        #     print("m", end="")
         count += 1
     return binary_N_paths
 
@@ -335,8 +338,6 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
 
     # first initialize a population 
     population, population_fitnesses_add_penalty = generate_population(population_size)
-    print('Population:\n', population)
-    print('population_fitnesses_add_penalty\n', population_fitnesses_add_penalty)
     initialization_end = time.time()
     print(f'\nInitialization Done! Time: {initialization_end - tic:.6f}s')
     population_fitnesses = [fitness(binary_N_paths) for binary_N_paths in population]
@@ -345,34 +346,34 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
     progress_with_penalty, progress = [], []
 
     # start evolving :)
-    # for i in range(evolution_depth):
-    #     progress_with_penalty.append(min(population_fitnesses_add_penalty))
-    #     progress.append(min(population_fitnesses))
-    #     print(f'----------------------------- generation {i + 1} Start! -----------------------------')
-    #     elitism_begin = time.time()
-    #     elites = elitism(population, population_fitnesses_add_penalty, elitism_cutoff)
-    #     print('Elites selected!')
-    #     children = crossover_mutation(population, population_fitnesses_add_penalty, population_size, elitism_cutoff)
-    #     print('Children created!')
-    #     population = np.concatenate([elites, children])
-    #     population_fitnesses_add_penalty = [fitness(binary_N_paths, addPenalty=True) for binary_N_paths in population]
-    #     population_fitnesses = [fitness(binary_N_paths) for binary_N_paths in population]
+    for i in range(evolution_depth):
+        progress_with_penalty.append(min(population_fitnesses_add_penalty))
+        progress.append(min(population_fitnesses))
+        print(f'----------------------------- generation {i + 1} Start! -----------------------------')
+        elitism_begin = time.time()
+        elites = elitism(population, population_fitnesses_add_penalty, elitism_cutoff)
+        print('Elites selected!')
+        children = crossover_mutation(population, population_fitnesses_add_penalty, population_size, elitism_cutoff)
+        print('Children created!')
+        population = np.concatenate([elites, children])
+        population_fitnesses_add_penalty = [fitness(binary_N_paths, addPenalty=True) for binary_N_paths in population]
+        population_fitnesses = [fitness(binary_N_paths) for binary_N_paths in population]
         
-    #     evol_end = time.time()
-    #     print(f"Min Cost: {min(population_fitnesses_add_penalty)} -> {min(population_fitnesses)}")
-    #     # check best solution feasibility
-    #     minIndex = population_fitnesses_add_penalty.index(min(population_fitnesses_add_penalty))
-    #     best_solution = population[minIndex]
-    #     allFeasibilityFlag = check_feasibility(best_solution, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag)
-    #     print("\nAll constraints met?", allFeasibilityFlag)
+        evol_end = time.time()
+        print(f"Min Cost: {min(population_fitnesses_add_penalty)} -> {min(population_fitnesses)}")
+        # check best solution feasibility
+        minIndex = population_fitnesses_add_penalty.index(min(population_fitnesses_add_penalty))
+        best_solution = population[minIndex]
+        allFeasibilityFlag = check_feasibility(best_solution, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag)
+        print("\nAll constraints met?", allFeasibilityFlag)
 
-    #     # print best solution
-    #     print('best solution (path):\n', best_solution)
-    #     directional_N_paths = [decode_one_path(one_path) for one_path in population[minIndex]]
-    #     link = sum(directional_N_paths)
-    #     print('best solution (link): \n', link)
+        # print best solution
+        print('best solution (path):\n', best_solution)
+        directional_N_paths = [decode_one_path(one_path) for one_path in population[minIndex]]
+        link = sum(directional_N_paths)
+        print('best solution (link): \n', link)
 
-    #     print(f'---------------------- generation {i + 1} evolved! Time: {evol_end - elitism_begin:.4f}s ----------------------\n')
+        print(f'---------------------- generation {i + 1} evolved! Time: {evol_end - elitism_begin:.4f}s ----------------------\n')
 
 if __name__ == "__main__":
 
@@ -387,7 +388,7 @@ if __name__ == "__main__":
 
     """initialization for buses"""
     # # of buses
-    N = 15
+    N = 11
     # #seats on each bus
     D = 40
     tolerance = 0
@@ -398,8 +399,8 @@ if __name__ == "__main__":
         [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
     ])
     # numerical example 2
-    demand = demand * 0.5
-    demand = demand.astype(int)
+    # demand = demand * 0.5
+    # demand = demand.astype(int)
     # toy numerical example
     # demand = np.array([
     #     [60, 120, 60,  10,  0,  0,  0],
