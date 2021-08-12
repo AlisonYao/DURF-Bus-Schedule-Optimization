@@ -1,8 +1,12 @@
 # DURF-Bus-Schedule-Optimization
 
-Building on our [final project](https://github.com/AlisonYao/Optimization-Final-Project) for the course Intro to Optimization and Mathematical Programming, we further extended our problem settings to be closer to real-life scenarios. We used Genetic Algorithm to further optimized the NYU Shanghai shuttle bus schedules.
+Building on our [final project](https://github.com/AlisonYao/Optimization-Final-Project) for the course **Intro to Optimization and Mathematical Programming**, we extended our problem settings to be closer to real-life scenarios. We used Genetic Algorithm to further optimized the NYU Shanghai shuttle bus schedules.
 
 Special thanks to Professor Zhibin Chen, the supervisor of this research project, for offering us guidance along the way and Dean's Undergraduate Research Fund (DURF) for generously providing us research funding.
+
+<!-- ## Paper
+
+The research outcome is presented in the form of an academic paper. Please see `report.docx`. -->
 
 ## Codes for Genetic Algorithm
 
@@ -18,9 +22,5 @@ The file Genetic Algorithm has all of my codes in progress.
 - `shuttle_multi_node.py` is a failed first attempt at the **extended problem**.
 - `shuttle_multi_node_v2.py` is a successful solution to the **extended problem**. `extended_problem.py` is the duplicate of this file.
 - `temp.py` is just my test file that doesn't have anything important.
-
-## Paper
-
-The research outcome is presented in the form of an academic paper. Please see `report.docx`.
 
 <!-- ## Blogs -->
