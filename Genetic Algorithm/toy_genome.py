@@ -2,7 +2,6 @@
 Toy example of the Knapsack problem from https://www.youtube.com/watch?v=nhT56blfRpE
 Also check part 1 of the video for theory explanation: https://www.youtube.com/watch?v=uQj5UNhCPuo&ab_channel=KieCodes
 
-Author: Alison Yao
 Credit: Kie Codes
 '''
 
