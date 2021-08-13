@@ -10,9 +10,9 @@ The research outcome is presented in the form of an academic paper. Please see `
 
 ## Codes for Genetic Algorithm
 
-Baseline problem solution: please see `baseline_problem.py` code
+Baseline problem solution: please see `.py` code
 
-Extended problem solution: please see `extended_problem.py` code
+Extended problem solution: please see `.py` code
 
 The file Genetic Algorithm has all of my codes in progress.
 

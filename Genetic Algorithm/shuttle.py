@@ -91,11 +91,9 @@ def max_working_hour_constraint(binary_N_paths):
         one_path_copy = one_path.copy()
         # first check if rush hour 10 or 01 actually is 11
         if checkRushHourFlag:
-            if one_path_copy[1] + one_path_copy[2] == 1:
-                one_path_copy[1] = 1
+            if one_path_copy[1] == 1 and one_path_copy[2] == 0:
                 one_path_copy[2] = 1
-            if one_path_copy[21] + one_path_copy[22] == 1:
-                one_path_copy[21] = 1
+            if one_path_copy[21] == 1 and one_path_copy[22] == 0:
                 one_path_copy[22] = 1
         for i, node in enumerate(one_path_copy):
             num += node
@@ -174,7 +172,7 @@ def elitism(population, fitness_scores, elitism_cutoff=2):
     elite_indices = np.argpartition(np.array(fitness_scores), elitism_cutoff)[:elitism_cutoff]
     return population[elite_indices, :]
 
-def crossover_mutation(population, population_fitnesses_add_penalty, population_size, elitism_cutoff):
+def create_next_generation(population, population_fitnesses_add_penalty, population_size, elitism_cutoff):
     """
     Randomly pick the good ones and cross them over
     """
@@ -282,7 +280,7 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
         elitism_begin = time.time()
         elites = elitism(population, population_fitnesses_add_penalty, elitism_cutoff)
         print('Elites selected!')
-        children = crossover_mutation(population, population_fitnesses_add_penalty, population_size, elitism_cutoff)
+        children = create_next_generation(population, population_fitnesses_add_penalty, population_size, elitism_cutoff)
         print('Children created!')
         population = np.concatenate([elites, children])
         population_fitnesses_add_penalty = [fitness(binary_N_paths, addPenalty=True) for binary_N_paths in population]

@@ -100,7 +100,11 @@ def decode_one_path(one_path_double_digit):
     decoded = np.array(decoded).T
     decoded_sum = decoded.sum(axis=0)
     if sum(decoded_sum) == 0:
-        decoded[0, :] = 1
+        x = random.random()
+        if x <= jinyang_prob:
+            decoded[0, :] = 0
+        else:
+            decoded[0, :] = 1
         return decoded
     k = 0
     while decoded_sum[k] == 0:
@@ -174,7 +178,7 @@ def generate_population(population_size):
 def elitism(population, fitness_scores, elitism_cutoff=2):
     pass
 
-def crossover_mutation(population, fitness_scores, population_size, elitism_cutoff):
+def create_next_generation(population, fitness_scores, population_size, elitism_cutoff):
     """
     Randomly pick the good ones and cross them over
     """
