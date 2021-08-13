@@ -10,17 +10,17 @@ The research outcome is presented in the form of an academic paper. Please see `
 
 ## Codes for Genetic Algorithm
 
-Baseline problem solution: please see `.py` code
+Baseline problem solution: please see `baseline_solution.py` code
 
-Extended problem solution: please see `.py` code
+Extended problem solution: please see `extension_solution.py` code
 
 The file Genetic Algorithm has all of my codes in progress.
 
-- `toy_genome.py` contains the YouTube tutorials I followed to learn GA.
-- `shuttle.py` is the first attempt at solving the **baseline problem**. I enforced the demand constraint as a requirement, rather than a penalty. This version is significantly slower to run because its one iteration could take the time of 50 iterations, only because the first 49 times failed to meet the demand constraint. Although the solutions are guaranteed to met the demand, it performs poorly.
-- `shuttle_v2.py` is the successful second attempt at the **baseline problem** where I converted the demand constraint into penalty. Although meeting the demand is not guaranteed at first, the solution will eventually satify demand over time. Same with the rush hour constraint and the max working hour constraint. `baseline_problem.py` is the duplicate of this file.
-- `shuttle_multi_node.py` is a failed first attempt at the **extended problem**.
-- `shuttle_multi_node_v2.py` is a successful solution to the **extended problem**. `extended_problem.py` is the duplicate of this file.
-- `temp.py` is just my test file that doesn't have anything important.
+- `toy_GA_example.py` contains the YouTube tutorials I followed to learn GA.
+- `baseline.py` is the first attempt at solving the **baseline problem**. I enforced the demand constraint as a requirement, rather than a penalty. This version is significantly slower to run because its one iteration could take the time of 50 iterations, only because the first 49 times failed to meet the demand constraint. Although the solutions are guaranteed to met the demand, it performs poorly.
+- `baseline_v2.py` is the successful second attempt at the **baseline problem** where I converted the demand constraint into penalty. Although meeting the demand is not guaranteed at first, the solution will eventually satify demand over time. Same with the rush hour constraint and the max working hour constraint. `baseline_solution.py` is the duplicate of this file.
+- `extension.py` is a failed first attempt at the **extended problem**.
+- `extension_v2.py` is a successful solution to the **extended problem**. `extended_solution.py` is the duplicate of this file.
+- `temp.py` is just a file for testing that doesn't have anything important.
 
 <!-- ## Blogs -->
