@@ -92,7 +92,6 @@ def run_evolution(
             key=lambda genome: fitness_func(genome),
             reverse=True
         )
-        print('@@@@@@@@@', len(population))
         if fitness_func(population[0]) >= fitness_limit:
             break
         next_generation = population[0:2]

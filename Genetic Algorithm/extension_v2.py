@@ -265,16 +265,14 @@ def create_next_generation(population, population_fitnesses_add_penalty, populat
             k=2
         )
         kid1, kid2 = single_point_crossover(parents[0], parents[1])
-        if kid1 is not None:
-            for _ in range(mutation_num):
-                kid1 = single_mutation(kid1)
-            children.append(kid1)
+        for _ in range(mutation_num):
+            kid1 = single_mutation(kid1)
+        children.append(kid1)
         if len(children) == population_size - elitism_cutoff:
             return np.array(children)
-        if kid2 is not None:
-            for _ in range(mutation_num):
-                kid2 = single_mutation(kid2)
-            children.append(kid2)
+        for _ in range(mutation_num):
+            kid2 = single_mutation(kid2)
+        children.append(kid2)
         if len(children) == population_size - elitism_cutoff:
             return np.array(children)
 
@@ -409,17 +407,9 @@ if __name__ == "__main__":
         [114,106,132,132,117,83,57,52,13,8,18,13,26,3,13,10,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0], 
         [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
     ])
-    # numerical example 2
-    # demand = demand * 0.5
-    # demand = demand.astype(int)
-    # toy numerical example
-    # demand = np.array([
-    #     [60, 120, 60,  10,  0,  0,  0],
-    #     [ 0,  0, 40, 60, 100, 20, 20]
-    # ])
-    demand_GC = demand * 0.9
+    demand_GC = demand
     demand_GC = demand_GC.astype(int)
-    demand_PS = demand * 0.1
+    demand_PS = np.around(demand / 9)
     demand_PS = demand_PS.astype(int)
 
     intervalNum = demand.shape[-1]

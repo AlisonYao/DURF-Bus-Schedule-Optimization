@@ -188,22 +188,22 @@ def create_next_generation(population, fitness_scores, population_size, elitism_
             k=2
         )
         kid1, kid2 = single_point_crossover(parents[0], parents[1])
-        if kid1 is not None:
-            for _ in range(mutation_num):
-                kid1 = single_mutation(kid1)
-            children.append(kid1)
+        for _ in range(mutation_num):
+            kid1 = mutation(kid1)
+        children.append(kid1)
         if len(children) == population_size - elitism_cutoff:
             return np.array(children)
-        if kid2 is not None:
-            for _ in range(mutation_num):
-                kid2 = single_mutation(kid2)
-            children.append(kid2)
+        for _ in range(mutation_num):
+            kid2 = mutation(kid2)
+        children.append(kid2)
         if len(children) == population_size - elitism_cutoff:
             return np.array(children)
+
 
 def single_point_crossover(parent1, parent2):
     """
     Randomly pick the good ones and cross them over
+    The crossover point is ideally NOT going to disrupt a path.
     """
     assert parent1.size == parent2.size
     length = len(parent1)
@@ -212,17 +212,23 @@ def single_point_crossover(parent1, parent2):
     cut = random.randint(1, length - 1)
     kid1 = np.append(parent1[0:cut, :], parent2[cut:, :]).reshape((N, intervalNum))
     kid2 = np.append(parent2[0:cut, :], parent1[cut:, :]).reshape((N, intervalNum))
-    # print("c", end="")
     return kid1, kid2
 
-def single_mutation(binary_N_paths):
+def mutation(binary_N_paths):
     """
     Mutate only one node in one path for now
     """
-    mutate_path = np.random.randint(0, N)
-    mutate_node = np.random.randint(0, intervalNum)
-    binary_N_paths[mutate_path][mutate_node] = abs(1 - binary_N_paths[mutate_path][mutate_node])
-    # print("m", end="")
+    # case 1: concentional mutation implementation
+    if mutationType == 'Conv':
+        path_num, node_num = binary_N_paths.shape
+        for k in range(path_num):
+            for i in range(node_num):
+                binary_N_paths[k, i] = binary_N_paths[k, i] if random.random() > mutation_prob else abs(binary_N_paths[k, i] - 1)
+    # case 2: self-designed mutation implementation
+    else:
+        mutate_path = np.random.randint(0, N)
+        mutate_node = np.random.randint(0, intervalNum)
+        binary_N_paths[mutate_path][mutate_node] = abs(1 - binary_N_paths[mutate_path][mutate_node])
     return binary_N_paths
 
 def result_stats(progress_with_penalty, progress):
@@ -307,35 +313,28 @@ if __name__ == "__main__":
     initial_prob = 0.8
     population_size = 20
     elitism_cutoff = 2
-    mutation_num = 1
-    loop_limit = 100
-    evolution_depth = 1000
+    mutationType = 'New' # Conv
+    mutation_prob = 0.95
+    mutation_num = 1 if mutationType == 'Conv' else 4
+    evolution_depth = 10000
 
     """initialization for buses"""
     # number of buses
-    N = 11
+    N = 20
     # number of seats on each bus
-    D = 40
+    D = 50
     tolerance = 0
     intervalDuration = 0.5
-    # numerical example 1
+    # numerical example
     demand = np.array([
         [114,106,132,132,117,83,57,52,13,8,18,13,26,3,13,10,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0], 
         [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
     ])
-    # numerical example 2
-    # demand = demand * 0.5
-    # demand.astype(int)
-    # toy numerical example
-    # demand = np.array([
-    #     [60, 120, 60,  10,  0,  0,  0], 
-    #     [ 0,  0, 40, 60, 100, 20, 20]
-    # ])
 
     intervalNum = demand.shape[-1]
     maxWorkingHour = 4
     checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag = True, True, True
-    alpha, demandViolationPenalty, rushHourViolationPenalty, maxWorkingHourViolationPenalty = 1, 5, 7, 5
+    alpha, demandViolationPenalty, rushHourViolationPenalty, maxWorkingHourViolationPenalty = 1, 10, 7, 5
 
     # run main function
     run_evolution(population_size, evolution_depth, elitism_cutoff)
