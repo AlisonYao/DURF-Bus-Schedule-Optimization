@@ -2,9 +2,9 @@
 Author: Alison Yao (yy2564@nyu.edu)
 Last Updated @ August 2, 2021
 
-It seems that this version does not work. 
-The initialization stage is stuck in infeasibility.
-Maybe this time, we have to convert demand into penalty to slowly get to feasibility over time. 
+This version does not work. 
+The initialization stage is stuck in infeasibility forever.
+Maybe this time, we have to convert demand into penalty to slowly move toward feasibility over time. 
 """
 
 import random

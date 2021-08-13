@@ -1,6 +1,6 @@
 """
 Author: Alison Yao (yy2564@nyu.edu)
-Last Updated @ August 3, 2021
+Last Updated @ August 13, 2021
 
 version 2 converts the demand into penalty
 """
@@ -92,12 +92,21 @@ def max_working_hour_constraint(binary_N_paths):
     violationCount = 0
     for one_path in binary_N_paths:
         num, num_list = 0, []
-        for i, node in enumerate(one_path):
+        one_path_copy = one_path.copy()
+        # first check if rush hour 10 or 01 actually is 11
+        if checkRushHourFlag:
+            if one_path_copy[1] + one_path_copy[2] == 1:
+                one_path_copy[1] = 1
+                one_path_copy[2] = 1
+            if one_path_copy[21] + one_path_copy[22] == 1:
+                one_path_copy[21] = 1
+                one_path_copy[22] = 1
+        for i, node in enumerate(one_path_copy):
             num += node
-            if i+1 == len(one_path):
+            if i+1 == len(one_path_copy):
                 num_list.append(num)
                 continue
-            if node == 1 and one_path[i+1] == 0:
+            if node == 1 and one_path_copy[i+1] == 0:
                 num_list.append(num)
                 num = 0
         violationCount += sum(np.array(num_list) > maxWorkingHour / intervalDuration)

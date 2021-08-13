@@ -88,16 +88,25 @@ def max_working_hour_constraint(binary_N_paths):
     violationCount = 0
     for one_path in binary_N_paths:
         num, num_list = 0, []
-        for i, node in enumerate(one_path):
+        one_path_copy = one_path.copy()
+        # first check if rush hour 10 or 01 actually is 11
+        if checkRushHourFlag:
+            if one_path_copy[1] + one_path_copy[2] == 1:
+                one_path_copy[1] = 1
+                one_path_copy[2] = 1
+            if one_path_copy[21] + one_path_copy[22] == 1:
+                one_path_copy[21] = 1
+                one_path_copy[22] = 1
+        for i, node in enumerate(one_path_copy):
             num += node
-            if i+1 == len(one_path):
+            if i+1 == len(one_path_copy):
                 num_list.append(num)
                 continue
-            if node == 1 and one_path[i+1] == 0:
+            if node == 1 and one_path_copy[i+1] == 0:
                 num_list.append(num)
                 num = 0
         violationCount += sum(np.array(num_list) > maxWorkingHour / intervalDuration)
-    return violationCount == 0, violationCount
+    return int(violationCount) == 0, int(violationCount)
 
 def check_feasibility(binary_N_paths, checkRushHour=False, checkMaxWorkingHour=False):
     '''
@@ -106,7 +115,6 @@ def check_feasibility(binary_N_paths, checkRushHour=False, checkMaxWorkingHour=F
     constraint2: during rush hours, one interval is not enough time to commute (optional)
     constraint3: make sure that no driver works more than a few hours continuously (optional)
     '''
-    # print('binary_N_paths:\n', binary_N_paths)
     rushHour, maxWorkingHour = True, True
     if checkRushHour:
         rushHour, rushHourViolationNum = rush_hour_constraint(binary_N_paths)
