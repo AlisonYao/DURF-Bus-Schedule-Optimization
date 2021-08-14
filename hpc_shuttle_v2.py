@@ -13,140 +13,75 @@ import matplotlib.pyplot as plt
 
 def generate_random_N_paths(N, path_length):
     '''
-    Randomize N paths where 1 path is like 00 01 00 01 01 01
+    Randomize N paths (1 path is like 010101010101) to generate one solution
     '''
     one_solution = []
-    while len(one_solution) < N:
-        one_path_single_digit = random.choices(population=[0, 1], weights=[1-initial_prob, initial_prob], k=path_length)
-        one_path_double_digit = ''
-        for i in one_path_single_digit:
-            if i == 0:
-                one_path_double_digit += '00'
-            elif i == 1:
-                one_path_double_digit += random.choices(population=['10', '01'], weights=[1-pusan_prob, pusan_prob])[0]
-        if check_path_integrity(one_path_double_digit):
-            one_solution.append(one_path_double_digit)
-    return one_solution
+    for _ in range(N):
+        # set the weights to initialize feasible solution faster
+        one_path = random.choices(population=[0, 1], weights=[1-initial_prob, initial_prob], k=path_length)
+        one_solution.append(one_path)
+    return np.array(one_solution)
 
-def check_solution_integrity(solution):
-    for one_path_double_digit in solution:
-        if not check_path_integrity(one_path_double_digit):
-            return False
-    return True
-
-def check_path_integrity(one_path_double_digit):
-    last_visited = None
-    for i in range(len(one_path_double_digit)):
-        if i % 2 == 0:
-            two_digits = one_path_double_digit[i:i+2]
-            if two_digits != '00':
-                # first time going to AB
-                if last_visited is None:
-                    last_visited = 'AB'
-                # following times
-                elif last_visited == 'JQJY':
-                    if two_digits == '01':
-                        return False
-                    else: # '10'
-                        last_visited = 'AB'
-                elif last_visited == 'PS':
-                    if two_digits == '10':
-                        return False
-                    else: # '01'
-                        last_visited = 'AB'
-                else:
-                    if two_digits == '10':
-                        last_visited = 'JQJY'
-                    else: # '01'
-                        last_visited = 'PS'
-    return True
-
-def decode_one_path(one_path_double_digit):
-    decoded, initial_node, last_visited = [], None, None
-    for i in range(len(one_path_double_digit)):
-        if i % 2 == 0:
-            two_digits = one_path_double_digit[i:i+2]
-            if two_digits == '00':
-                if last_visited is None:
-                    decoded.append([0, 0, 0, 0, 0, 0, 0])
-                elif last_visited == 'JQJY':
-                    decoded.append([1, 0, 0, 0, 0, 0, 0])
-                elif last_visited == 'AB':
-                    decoded.append([0, 0, 0, 1, 0, 0, 0])
-                else: # PS
-                    decoded.append([0, 0, 0, 0, 0, 0, 1])
-            elif two_digits == '10':
-                if last_visited is None:
-                    initial_node = 0
-                    last_visited = 'AB'
-                    decoded.append([0, 1, 0, 0, 0, 0, 0])
-                elif last_visited == 'AB':
-                    last_visited = 'JQJY'
-                    decoded.append([0, 0, 1, 0, 0, 0, 0])
-                elif last_visited == 'JQJY':
-                    last_visited = 'AB'
-                    decoded.append([0, 1, 0, 0, 0, 0, 0])
-                else:
-                    print('SOMETHING IS WRONG1!!!')
-            elif two_digits == '01':
-                if last_visited is None:
-                    initial_node = -1
-                    last_visited = 'AB'
-                    decoded.append([0, 0, 0, 0, 0, 1, 0])
-                elif last_visited == 'AB':
-                    last_visited = 'PS'
-                    decoded.append([0, 0, 0, 0, 1, 0, 0])
-                elif last_visited == 'PS':
-                    last_visited = 'AB'
-                    decoded.append([0, 0, 0, 0, 0, 1, 0])
-                else:
-                    print('SOMETHING IS WRONG2!!!')
-    decoded = np.array(decoded).T
-    decoded_sum = decoded.sum(axis=0)
-    if sum(decoded_sum) == 0:
-        if random.random() <= pusan_prob:
-            decoded[0, :] = 0
+def decode_one_path(one_path):
+    decoded = []
+    i, previous_node = None, None
+    for j, current_node in enumerate(one_path):
+        # first node
+        if i == previous_node == None:
+            if current_node == 0:
+                decoded.append([1, 0, 0, 0])
+            else:
+                decoded.append([0, 1, 0, 0])
+        # all nodes after first node
         else:
-            decoded[0, :] = 1
-        return decoded
-    k = 0
-    while decoded_sum[k] == 0:
-        decoded[initial_node, k] = 1
-        k += 1
-    return decoded
+            previous_path = decoded[i]
+            assert sum(previous_path) == 1
+            if previous_path[0] == 1: # A
+                if current_node == 0: # A
+                    decoded.append([1, 0, 0, 0])
+                else: # B
+                    decoded.append([0, 1, 0, 0])
+            elif previous_path[1] == 1: # B
+                if current_node == 0: # D
+                    decoded.append([0, 0, 0, 1])
+                else: # C
+                    decoded.append([0, 0, 1, 0])
+            elif previous_path[2] == 1: # C
+                if current_node == 0: # A
+                    decoded.append([1, 0, 0, 0])
+                else: # B
+                    decoded.append([0, 1, 0, 0])
+            else:
+                if current_node == 0: # D
+                    decoded.append([0, 0, 0, 1])
+                else: # C
+                    decoded.append([0, 0, 1, 0])
+        i, previous_node = j, current_node
+    return np.array(decoded).T
 
 def demand_constraint(binary_N_paths, tolerance):
     '''
     make sure the demand is met
     '''
+    # get the link representation first
     directional_N_paths = [decode_one_path(one_path) for one_path in binary_N_paths]
     link = sum(directional_N_paths)
-    link_JQJY = link[:4, :]
-    link_PS = link[-1:2:-1, :]
-    JQJY_supply_demand_difference = np.greater_equal(demand_JQJY - tolerance, link_JQJY[1:3, :] * D)
-    JQJY_mask = (demand_JQJY - tolerance) - (link_JQJY[1:3, :] * D)
-    PS_supply_demand_difference = np.greater_equal(demand_PS - tolerance, link_PS[1:3, :] * D)
-    PS_mask = (demand_PS - tolerance) - (link_PS[1:3, :] * D)
-    missedDemandNumJQJY = np.sum(JQJY_supply_demand_difference * JQJY_mask)
-    missedDemandNumPS = np.sum(PS_supply_demand_difference * PS_mask)
-    return int(missedDemandNumJQJY + missedDemandNumPS) == 0, int(missedDemandNumJQJY + missedDemandNumPS)
+    supplyDemandDifference = np.greater_equal(demand - tolerance, link[1:3, :] * D)
+    mask = (demand - tolerance) - (link[1:3, :] * D)
+    missedDemandNum = np.sum(supplyDemandDifference * mask)
+    return int(missedDemandNum) == 0, int(missedDemandNum)
 
 def rush_hour_constraint(binary_N_paths):
     '''
     during rush hours, one interval is not enough time to commute
     '''
     violationCount = 0
-    for one_path_double_digit in binary_N_paths:
-        one_path_single_digit_list = []
-        one_path_double_digit_list = list(one_path_double_digit)
-        for i in range(len(one_path_double_digit_list)):
-            if i % 2 == 0:
-                one_path_single_digit_list.append(int(one_path_double_digit_list[i]) + int(one_path_double_digit_list[i+1]))
+    for one_path in binary_N_paths:
         # morning rush hour
-        if one_path_single_digit_list[1] + one_path_single_digit_list[2] == 2:
+        if one_path[1] + one_path[2] == 2:
             violationCount += 1
         # evening rush hour
-        if one_path_single_digit_list[21] + one_path_single_digit_list[22] == 2:
+        if one_path[21] + one_path[22] == 2:
             violationCount += 1
     return int(violationCount) == 0, int(violationCount)
 
@@ -155,15 +90,10 @@ def max_working_hour_constraint(binary_N_paths):
     make sure that no driver works more than a few hours continuously
     '''
     violationCount = 0
-    for one_path_double_digit in binary_N_paths:
-        one_path_single_digit_list = []
-        one_path_double_digit_list = list(one_path_double_digit)
-        for i in range(len(one_path_double_digit_list)):
-            if i % 2 == 0:
-                one_path_single_digit_list.append(int(one_path_double_digit_list[i]) + int(one_path_double_digit_list[i+1]))
+    for one_path in binary_N_paths:
         num, num_list = 0, []
-        one_path_copy = one_path_single_digit_list.copy()
-        # first check if rush hour 10 actually is 11.
+        one_path_copy = one_path.copy()
+        # first check if rush hour 10 or 01 actually is 11
         if checkRushHourFlag:
             if one_path_copy[1] == 1 and one_path_copy[2] == 0:
                 one_path_copy[2] = 1
@@ -198,9 +128,11 @@ def check_feasibility(binary_N_paths, checkDemand=True, checkRushHour=False, che
         print("d"+str(demandViolationNum), end="")
     if not rushHour:
         print("r"+str(rushHourViolationNum), end="")
+    else:
+        rushHourViolationNum = -1
     if not maxWorkingHour:
         print("w"+str(maxWorkingHourViolationNum), end="")
-    return demandFlag and rushHour and maxWorkingHour
+    return demandFlag and rushHour and maxWorkingHour, "d"+str(demandViolationNum), "r"+str(rushHourViolationNum), "w"+str(maxWorkingHourViolationNum)
 
 def fitness(binary_N_paths, addPenalty=False):
     """
@@ -209,14 +141,8 @@ def fitness(binary_N_paths, addPenalty=False):
     """
     total_cost = 0
     # basic cost
-    for one_path_double_digit in binary_N_paths:
-        one_path_single_digit_list = []
-        one_path_double_digit_list = list(one_path_double_digit)
-        for i in range(len(one_path_double_digit_list)):
-            if i % 2 == 0:
-                one_path_single_digit_list.append(int(one_path_double_digit_list[i]) + int(one_path_double_digit_list[i+1]))
-        one_path_single_digit_np = np.array(one_path_single_digit_list)
-        target_indices = np.where(one_path_single_digit_np == 1)[0]
+    for one_path in binary_N_paths:
+        target_indices = np.where(one_path == 1)[0]
         if len(target_indices) == 0:
             duration_interval_num = 0
         else:
@@ -255,7 +181,7 @@ def elitism(population, fitness_scores, elitism_cutoff=2):
     elite_indices = np.argpartition(np.array(fitness_scores), elitism_cutoff)[:elitism_cutoff]
     return population[elite_indices, :]
 
-def create_next_generation(population, population_fitnesses_add_penalty, population_size, elitism_cutoff):
+def create_next_generation(population, fitness_scores, population_size, elitism_cutoff):
     """
     Randomly pick the good ones and cross them over
     """
@@ -263,17 +189,17 @@ def create_next_generation(population, population_fitnesses_add_penalty, populat
     while True:
         parents = random.choices(
             population=population,
-            weights=[(max(population_fitnesses_add_penalty) - score + 1)/(max(population_fitnesses_add_penalty) * len(population_fitnesses_add_penalty) - sum(population_fitnesses_add_penalty) + len(population_fitnesses_add_penalty)) for score in population_fitnesses_add_penalty],
+            weights=[(max(fitness_scores) - score + 1)/(max(fitness_scores) * len(fitness_scores) - sum(fitness_scores) + len(fitness_scores)) for score in fitness_scores],
             k=2
         )
         kid1, kid2 = single_point_crossover(parents[0], parents[1])
         for _ in range(mutation_num):
-            kid1 = single_mutation(kid1)
+            kid1 = mutation(kid1)
         children.append(kid1)
         if len(children) == population_size - elitism_cutoff:
             return np.array(children)
         for _ in range(mutation_num):
-            kid2 = single_mutation(kid2)
+            kid2 = mutation(kid2)
         children.append(kid2)
         if len(children) == population_size - elitism_cutoff:
             return np.array(children)
@@ -281,44 +207,32 @@ def create_next_generation(population, population_fitnesses_add_penalty, populat
 def single_point_crossover(parent1, parent2):
     """
     Randomly pick the good ones and cross them over
+    The crossover point is ideally NOT going to disrupt a path.
     """
     assert parent1.size == parent2.size
     length = len(parent1)
     if length < 2:
         return parent1, parent2
-    count = 0
-    while count <= loop_limit:
-        cut = random.randint(1, length - 1) * 2
-        kid1 = np.array(list(parent1)[:cut] + list(parent2)[cut:])
-        kid2 = np.array(list(parent2)[:cut] + list(parent1)[cut:])
-        if check_solution_integrity(kid1) and check_solution_integrity(kid2):
-            return kid1, kid2
-        elif check_solution_integrity(kid1) and not check_solution_integrity(kid2):
-            return kid1, None
-        elif not check_solution_integrity(kid1) and check_solution_integrity(kid2):
-            return None, kid2
-        count += 1
-    return parent1, parent2
+    cut = random.randint(1, length - 1)
+    kid1 = np.append(parent1[0:cut, :], parent2[cut:, :]).reshape((N, intervalNum))
+    kid2 = np.append(parent2[0:cut, :], parent1[cut:, :]).reshape((N, intervalNum))
+    return kid1, kid2
 
-def single_mutation(binary_N_paths):
+def mutation(binary_N_paths):
     """
     Mutate only one node in one path for now
     """
-    count = 0
-    binary_N_paths_copy = binary_N_paths.copy()
-    while count <= loop_limit:
+    # case 1: concentional mutation implementation
+    if mutationType == 'Conv':
+        path_num, node_num = binary_N_paths.shape
+        for k in range(path_num):
+            for i in range(node_num):
+                binary_N_paths[k, i] = binary_N_paths[k, i] if random.random() > mutation_prob else abs(binary_N_paths[k, i] - 1)
+    # case 2: self-designed mutation implementation
+    else:
         mutate_path = np.random.randint(0, N)
-        mutate_index = np.random.randint(0, intervalNum) * 2
-        double_digits_to_mutate = binary_N_paths_copy[mutate_path][mutate_index:mutate_index+2]
-        pool = ['00', '01', '10']
-        pool.remove(double_digits_to_mutate)
-        mutated_double_digits = random.choices(population=pool)[0]
-        original_string = binary_N_paths_copy[mutate_path]
-        mutated_string = original_string[:mutate_index] + mutated_double_digits + original_string[mutate_index+2:]
-        if check_path_integrity(mutated_string):
-            binary_N_paths_copy[mutate_path] = mutated_string
-            return binary_N_paths_copy
-        count += 1
+        mutate_node = np.random.randint(0, intervalNum)
+        binary_N_paths[mutate_path][mutate_node] = abs(1 - binary_N_paths[mutate_path][mutate_node])
     return binary_N_paths
 
 def result_stats(progress_with_penalty, progress):
@@ -330,12 +244,18 @@ def result_stats(progress_with_penalty, progress):
     print(f"Progress of improvement: {progress[0]} to {progress[-1]}")
     print("Improvement Rate of progress:", abs(progress[-1] - progress[0])/progress[0])
     print('**************************************************************')
+    with open(file_name + '.txt', 'a') as file:
+        file.writelines('**************************************************************\n')
+        file.writelines(f"Progress_with_penalty of improvement: {progress_with_penalty[0]} to {progress_with_penalty[-1]}\n" )
+        file.writelines(f"Progress of improvement: {progress[0]} to {progress[-1]}\n")
+        file.writelines(f"Improvement Rate of progress: {abs(progress[-1] - progress[0])/progress[0]}\n")
+        file.writelines('**************************************************************\n\n')
     plt.plot(progress_with_penalty, data=progress_with_penalty, label='with penalty')
     plt.plot(progress, data=progress, label='no penalty')
     plt.xlabel("Generation")
     plt.ylabel("Cost")
     plt.legend()
-    plt.show()
+    plt.savefig(file_name + '.png')
 
 def run_evolution(population_size, evolution_depth, elitism_cutoff):
     '''
@@ -346,12 +266,12 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
     # first initialize a population 
     population, population_fitnesses_add_penalty = generate_population(population_size)
     initialization_end = time.time()
-    print(f'\nInitialization Done! Time: {initialization_end - tic:.6f}s')
+    print('\nInitialization Done!', initialization_end - tic)
     population_fitnesses = [fitness(binary_N_paths) for binary_N_paths in population]
     print(f'Initial Min Cost: {min(population_fitnesses_add_penalty)} -> {min(population_fitnesses)}')
     # keep track of improvement
     progress_with_penalty, progress = [], []
-
+    
     # start evolving :)
     for i in range(evolution_depth):
         progress_with_penalty.append(min(population_fitnesses_add_penalty))
@@ -371,7 +291,7 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
         # check best solution feasibility
         minIndex = population_fitnesses_add_penalty.index(min(population_fitnesses_add_penalty))
         best_solution = population[minIndex]
-        allFeasibilityFlag = check_feasibility(best_solution, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag)
+        allFeasibilityFlag, _, _, _ = check_feasibility(best_solution, checkDemand=checkDemandFlag, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag)
         print("\nAll constraints met?", allFeasibilityFlag)
 
         # print best solution
@@ -381,36 +301,37 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
         print('best solution (link): \n', link)
 
         print(f'---------------------- generation {i + 1} evolved! Time: {evol_end - elitism_begin:.4f}s ----------------------\n')
-
+    
     # plot results
     result_stats(progress_with_penalty, progress)
 
-    # print best solution
-    minIndex = population_fitnesses_add_penalty.index(min(population_fitnesses_add_penalty))
-    best_solution = population[minIndex]
-    print('best solution (path):\n', best_solution)
+    ### Write to file
+    with open(file_name + '.txt', 'a') as file:
+        minIndex = population_fitnesses_add_penalty.index(min(population_fitnesses_add_penalty))
+        best_solution = population[minIndex]
+        file.writelines('best solution (path):\n' + str(best_solution))
 
-    # check if all constraints are met (ideally True)
-    print("\nAll constraints met?", check_feasibility(best_solution, checkDemand=checkDemandFlag, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag))
-    directional_N_paths = [decode_one_path(one_path) for one_path in population[minIndex]]
-    link = sum(directional_N_paths)
-    print('best solution (link): \n', link)
+        file.writelines(f"\nAll constraints met? {check_feasibility(best_solution, checkDemand=checkDemandFlag, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag)}")
+        directional_N_paths = [decode_one_path(one_path) for one_path in population[minIndex]]
+        link = sum(directional_N_paths)
+        file.writelines('\nbest solution (link): \n' + str(link))
+
 
 if __name__ == "__main__":
 
     """initialization for genetic algo"""
     initial_prob = 0.8
-    pusan_prob = 0.2
     population_size = 20
     elitism_cutoff = 2
-    mutation_num = 1
-    loop_limit = 100
-    evolution_depth = 50000
+    mutationType = 'New' # Conv
+    mutation_prob = 0.95
+    mutation_num = 1 if mutationType == 'Conv' else 1
+    evolution_depth = 5
 
     """initialization for buses"""
-    # # of buses
-    N = 23
-    # #seats on each bus
+    # number of buses
+    N = 16
+    # number of seats on each bus
     D = 50
     tolerance = 0
     intervalDuration = 0.5
@@ -419,15 +340,24 @@ if __name__ == "__main__":
         [114,106,132,132,117,83,57,52,13,8,18,13,26,3,13,10,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0], 
         [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
     ])
-    demand_JQJY = demand
-    demand_JQJY = demand_JQJY.astype(int)
-    demand_PS = np.around(demand / 9)
-    demand_PS = demand_PS.astype(int)
 
     intervalNum = demand.shape[-1]
     maxWorkingHour = 4
-    checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag = True, True, True
-    alpha, demandViolationPenalty, rushHourViolationPenalty, maxWorkingHourViolationPenalty = 1, 20, 17, 15
+    checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag = True, False, True
+    alpha, demandViolationPenalty, rushHourViolationPenalty, maxWorkingHourViolationPenalty = 1, 10, 7, 5
+
+    print('####################################\n')
+    print(f'N = {N}\n')
+    print(f'checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag = {checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag}\n')
+    print('####################################\n\n')
+
+    ### Write to file
+    file_name = str(N) + str(checkDemandFlag) + str(checkRushHourFlag) + str(checkMaxWorkingHourFlag) 
+    with open(file_name + '.txt', 'w') as file:
+        file.writelines('####################################\n')
+        file.writelines(f'N = {N}\n')
+        file.writelines(f'checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag = {checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag}\n')
+        file.writelines('####################################\n\n')
 
     # run main function
     run_evolution(population_size, evolution_depth, elitism_cutoff)
