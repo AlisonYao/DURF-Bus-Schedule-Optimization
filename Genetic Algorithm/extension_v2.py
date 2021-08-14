@@ -391,11 +391,11 @@ if __name__ == "__main__":
     elitism_cutoff = 2
     mutation_num = 1
     loop_limit = 100
-    evolution_depth = 10000
+    evolution_depth = 50000
 
     """initialization for buses"""
     # # of buses
-    N = 40
+    N = 23
     # #seats on each bus
     D = 50
     tolerance = 0

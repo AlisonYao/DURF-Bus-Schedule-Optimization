@@ -314,7 +314,7 @@ if __name__ == "__main__":
 
     """initialization for genetic algo"""
     initial_prob = 0.8
-    population_size = 17
+    population_size = 20
     elitism_cutoff = 2
     mutationType = 'New' # Conv
     mutation_prob = 0.95
