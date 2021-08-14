@@ -1,6 +1,6 @@
 """
 Author: Alison Yao (yy2564@nyu.edu)
-Last Updated @ August 13, 2021
+Last Updated @ August 14, 2021
 
 version 2 converts the demand into penalty
 """
@@ -23,7 +23,7 @@ def generate_random_N_paths(N, path_length):
             if i == 0:
                 one_path_double_digit += '00'
             elif i == 1:
-                one_path_double_digit += random.choices(population=['10', '01'], weights=[1-jinyang_prob, jinyang_prob])[0]
+                one_path_double_digit += random.choices(population=['10', '01'], weights=[1-pusan_prob, pusan_prob])[0]
         if check_path_integrity(one_path_double_digit):
             one_solution.append(one_path_double_digit)
     return one_solution
@@ -44,7 +44,7 @@ def check_path_integrity(one_path_double_digit):
                 if last_visited is None:
                     last_visited = 'AB'
                 # following times
-                elif last_visited == 'GC':
+                elif last_visited == 'JQJY':
                     if two_digits == '01':
                         return False
                     else: # '10'
@@ -56,7 +56,7 @@ def check_path_integrity(one_path_double_digit):
                         last_visited = 'AB'
                 else:
                     if two_digits == '10':
-                        last_visited = 'GC'
+                        last_visited = 'JQJY'
                     else: # '01'
                         last_visited = 'PS'
     return True
@@ -69,7 +69,7 @@ def decode_one_path(one_path_double_digit):
             if two_digits == '00':
                 if last_visited is None:
                     decoded.append([0, 0, 0, 0, 0, 0, 0])
-                elif last_visited == 'GC':
+                elif last_visited == 'JQJY':
                     decoded.append([1, 0, 0, 0, 0, 0, 0])
                 elif last_visited == 'AB':
                     decoded.append([0, 0, 0, 1, 0, 0, 0])
@@ -81,9 +81,9 @@ def decode_one_path(one_path_double_digit):
                     last_visited = 'AB'
                     decoded.append([0, 1, 0, 0, 0, 0, 0])
                 elif last_visited == 'AB':
-                    last_visited = 'GC'
+                    last_visited = 'JQJY'
                     decoded.append([0, 0, 1, 0, 0, 0, 0])
-                elif last_visited == 'GC':
+                elif last_visited == 'JQJY':
                     last_visited = 'AB'
                     decoded.append([0, 1, 0, 0, 0, 0, 0])
                 else:
@@ -104,8 +104,7 @@ def decode_one_path(one_path_double_digit):
     decoded = np.array(decoded).T
     decoded_sum = decoded.sum(axis=0)
     if sum(decoded_sum) == 0:
-        x = random.random()
-        if x <= jinyang_prob:
+        if random.random() <= pusan_prob:
             decoded[0, :] = 0
         else:
             decoded[0, :] = 1
@@ -122,16 +121,15 @@ def demand_constraint(binary_N_paths, tolerance):
     '''
     directional_N_paths = [decode_one_path(one_path) for one_path in binary_N_paths]
     link = sum(directional_N_paths)
-    link_GC = link[:4, :]
+    link_JQJY = link[:4, :]
     link_PS = link[-1:2:-1, :]
-    GC_supply_demand_difference = np.greater_equal(demand_GC - tolerance, link_GC[1:3, :] * D)
-    GC_mask = (demand_GC - tolerance) - (link_GC[1:3, :] * D)
+    JQJY_supply_demand_difference = np.greater_equal(demand_JQJY - tolerance, link_JQJY[1:3, :] * D)
+    JQJY_mask = (demand_JQJY - tolerance) - (link_JQJY[1:3, :] * D)
     PS_supply_demand_difference = np.greater_equal(demand_PS - tolerance, link_PS[1:3, :] * D)
     PS_mask = (demand_PS - tolerance) - (link_PS[1:3, :] * D)
-    missedDemandNumGC = np.sum(GC_supply_demand_difference * GC_mask)
+    missedDemandNumJQJY = np.sum(JQJY_supply_demand_difference * JQJY_mask)
     missedDemandNumPS = np.sum(PS_supply_demand_difference * PS_mask)
-    # print(f'GC demand met? {missedDemandNumGC} PS demand met? {missedDemandNumPS}')
-    return int(missedDemandNumGC + missedDemandNumPS) == 0, int(missedDemandNumGC + missedDemandNumPS)
+    return int(missedDemandNumJQJY + missedDemandNumPS) == 0, int(missedDemandNumJQJY + missedDemandNumPS)
 
 def rush_hour_constraint(binary_N_paths):
     '''
@@ -145,7 +143,7 @@ def rush_hour_constraint(binary_N_paths):
             if i % 2 == 0:
                 one_path_single_digit_list.append(int(one_path_double_digit_list[i]) + int(one_path_double_digit_list[i+1]))
         # morning rush hour
-        if one_path_single_digit_list[1] + one_path_single_digit_list[2] == 2: # or one_path_single_digit_list[2] + one_path_single_digit_list[3] == 2:
+        if one_path_single_digit_list[1] + one_path_single_digit_list[2] == 2:
             violationCount += 1
         # evening rush hour
         if one_path_single_digit_list[21] + one_path_single_digit_list[22] == 2:
@@ -164,7 +162,7 @@ def max_working_hour_constraint(binary_N_paths):
             if i % 2 == 0:
                 one_path_single_digit_list.append(int(one_path_double_digit_list[i]) + int(one_path_double_digit_list[i+1]))
         num, num_list = 0, []
-        one_path_copy = one_path_double_digit.copy()
+        one_path_copy = one_path_single_digit_list.copy()
         # first check if rush hour 10 actually is 11.
         if checkRushHourFlag:
             if one_path_copy[1] == 1 and one_path_copy[2] == 0:
@@ -187,7 +185,7 @@ def check_feasibility(binary_N_paths, checkDemand=True, checkRushHour=False, che
     s.t. constraints (make sure initial paths & crossover paths & mutated paths are feasible)
     constraint1: meet demand
     constraint2: during rush hours, one interval is not enough time to commute (optional)
-    constraint3: make sure that no driver works more than a few hours continuously (optional)
+    constraint3: make sure that no driver works more than a few hours continuously
     '''
     demandFlag, rushHour, maxWorkingHour = True, True, True
     if checkDemand:
@@ -236,7 +234,12 @@ def fitness(binary_N_paths, addPenalty=False):
         demandFlag, demandViolationNum = demand_constraint(binary_N_paths, tolerance)
         rushHour, rushHourViolatonNum = rush_hour_constraint(binary_N_paths)
         maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(binary_N_paths)
-        total_cost += alpha * demandViolationNum * demandViolationPenalty + rushHourViolatonNum * rushHourViolationPenalty + maxWorkingHourViolationNum * maxWorkingHourViolationPenalty
+        if checkDemandFlag:
+            total_cost += alpha * demandViolationNum * demandViolationPenalty
+        if checkRushHourFlag:
+            total_cost += rushHourViolatonNum * rushHourViolationPenalty
+        if maxWorkingHourViolationPenalty:
+            total_cost += maxWorkingHourViolationNum * maxWorkingHourViolationPenalty
     return total_cost
 
 def generate_population(population_size):
@@ -246,7 +249,6 @@ def generate_population(population_size):
         population.append(binary_N_paths)
         fitness_score_add_penalty = fitness(binary_N_paths, addPenalty=True)
         fitness_scores_add_penalty.append(fitness_score_add_penalty)
-        print("i", end="")
     return np.array(population), np.array(fitness_scores_add_penalty)
 
 def elitism(population, fitness_scores, elitism_cutoff=2):
@@ -295,8 +297,6 @@ def single_point_crossover(parent1, parent2):
             return kid1, None
         elif not check_solution_integrity(kid1) and check_solution_integrity(kid2):
             return None, kid2
-        else:
-            print("c", end="")
         count += 1
     return parent1, parent2
 
@@ -318,8 +318,6 @@ def single_mutation(binary_N_paths):
         if check_path_integrity(mutated_string):
             binary_N_paths_copy[mutate_path] = mutated_string
             return binary_N_paths_copy
-        # else:
-        #     print("m", end="")
         count += 1
     return binary_N_paths
 
@@ -328,8 +326,8 @@ def result_stats(progress_with_penalty, progress):
     print important stats & visulize progress_with_penalty
     """
     print('**************************************************************')
-    print("Progress_with_penalty of improvement:", progress_with_penalty)
-    print("Progress of improvement:", progress)
+    print(f"Progress_with_penalty of improvement: {progress_with_penalty[0]} to {progress_with_penalty[-1]}" )
+    print(f"Progress of improvement: {progress[0]} to {progress[-1]}")
     print("Improvement Rate of progress:", abs(progress[-1] - progress[0])/progress[0])
     print('**************************************************************')
     plt.plot(progress_with_penalty, data=progress_with_penalty, label='with penalty')
@@ -388,18 +386,18 @@ if __name__ == "__main__":
 
     """initialization for genetic algo"""
     initial_prob = 0.8
-    jinyang_prob = 0.2
+    pusan_prob = 0.2
     population_size = 20
     elitism_cutoff = 2
     mutation_num = 1
     loop_limit = 100
-    evolution_depth = 1000
+    evolution_depth = 10000
 
     """initialization for buses"""
     # # of buses
-    N = 11
+    N = 40
     # #seats on each bus
-    D = 40
+    D = 50
     tolerance = 0
     intervalDuration = 0.5
     # numerical example 1
@@ -407,15 +405,15 @@ if __name__ == "__main__":
         [114,106,132,132,117,83,57,52,13,8,18,13,26,3,13,10,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0], 
         [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
     ])
-    demand_GC = demand
-    demand_GC = demand_GC.astype(int)
+    demand_JQJY = demand
+    demand_JQJY = demand_JQJY.astype(int)
     demand_PS = np.around(demand / 9)
     demand_PS = demand_PS.astype(int)
 
     intervalNum = demand.shape[-1]
     maxWorkingHour = 4
     checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag = True, True, True
-    alpha, demandViolationPenalty, rushHourViolationPenalty, maxWorkingHourViolationPenalty = 1, 5, 7, 5
+    alpha, demandViolationPenalty, rushHourViolationPenalty, maxWorkingHourViolationPenalty = 1, 20, 17, 15
 
     # run main function
     run_evolution(population_size, evolution_depth, elitism_cutoff)

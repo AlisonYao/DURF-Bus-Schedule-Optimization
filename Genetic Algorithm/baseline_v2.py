@@ -1,6 +1,6 @@
 """
 Author: Alison Yao (yy2564@nyu.edu)
-Last Updated @ August 13, 2021
+Last Updated @ August 14, 2021
 
 version 2 converts the demand into penalty
 """
@@ -78,7 +78,7 @@ def rush_hour_constraint(binary_N_paths):
     violationCount = 0
     for one_path in binary_N_paths:
         # morning rush hour
-        if one_path[1] + one_path[2] == 2: # or one_path[2] + one_path[3] == 2:
+        if one_path[1] + one_path[2] == 2:
             violationCount += 1
         # evening rush hour
         if one_path[21] + one_path[22] == 2:
@@ -115,9 +115,8 @@ def check_feasibility(binary_N_paths, checkDemand=True, checkRushHour=False, che
     s.t. constraints (make sure initial paths & crossover paths & mutated paths are feasible)
     constraint1: meet demand
     constraint2: during rush hours, one interval is not enough time to commute (optional)
-    constraint3: make sure that no driver works more than a few hours continuously (optional)
+    constraint3: make sure that no driver works more than a few hours continuously
     '''
-    # print('binary_N_paths:\n', binary_N_paths)
     demandFlag, rushHour, maxWorkingHour = True, True, True
     if checkDemand:
         demandFlag, demandViolationNum = demand_constraint(binary_N_paths, tolerance)
@@ -159,7 +158,12 @@ def fitness(binary_N_paths, addPenalty=False):
         demandFlag, demandViolationNum = demand_constraint(binary_N_paths, tolerance)
         rushHour, rushHourViolatonNum = rush_hour_constraint(binary_N_paths)
         maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(binary_N_paths)
-        total_cost += alpha * demandViolationNum * demandViolationPenalty + rushHourViolatonNum * rushHourViolationPenalty + maxWorkingHourViolationNum * maxWorkingHourViolationPenalty
+        if checkDemandFlag:
+            total_cost += alpha * demandViolationNum * demandViolationPenalty
+        if checkRushHourFlag:
+            total_cost += rushHourViolatonNum * rushHourViolationPenalty
+        if maxWorkingHourViolationPenalty:
+            total_cost += maxWorkingHourViolationNum * maxWorkingHourViolationPenalty
     return total_cost
 
 def generate_population(population_size):
@@ -169,7 +173,6 @@ def generate_population(population_size):
         population.append(binary_N_paths)
         fitness_score_add_penalty = fitness(binary_N_paths, addPenalty=True)
         fitness_scores_add_penalty.append(fitness_score_add_penalty)
-        print("i", end="")
     return np.array(population), np.array(fitness_scores_add_penalty)
 
 def elitism(population, fitness_scores, elitism_cutoff=2):
@@ -236,8 +239,8 @@ def result_stats(progress_with_penalty, progress):
     print important stats & visulize progress_with_penalty
     """
     print('**************************************************************')
-    print("Progress_with_penalty of improvement:", progress_with_penalty)
-    print("Progress of improvement:", progress)
+    print(f"Progress_with_penalty of improvement: {progress_with_penalty[0]} to {progress_with_penalty[-1]}" )
+    print(f"Progress of improvement: {progress[0]} to {progress[-1]}")
     print("Improvement Rate of progress:", abs(progress[-1] - progress[0])/progress[0])
     print('**************************************************************')
     plt.plot(progress_with_penalty, data=progress_with_penalty, label='with penalty')
@@ -311,12 +314,12 @@ if __name__ == "__main__":
 
     """initialization for genetic algo"""
     initial_prob = 0.8
-    population_size = 20
+    population_size = 17
     elitism_cutoff = 2
     mutationType = 'New' # Conv
     mutation_prob = 0.95
-    mutation_num = 1 if mutationType == 'Conv' else 4
-    evolution_depth = 10000
+    mutation_num = 1 if mutationType == 'Conv' else 1
+    evolution_depth = 50000
 
     """initialization for buses"""
     # number of buses
