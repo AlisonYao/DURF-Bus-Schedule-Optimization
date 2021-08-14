@@ -115,11 +115,11 @@ def decode_one_path(one_path_double_digit):
         k += 1
     return decoded
 
-def demand_constraint(binary_N_paths, tolerance):
+def demand_constraint(solution_chromosome, tolerance):
     '''
     make sure the demand is met
     '''
-    directional_N_paths = [decode_one_path(one_path) for one_path in binary_N_paths]
+    directional_N_paths = [decode_one_path(one_path) for one_path in solution_chromosome]
     link = sum(directional_N_paths)
     link_JQJY = link[:4, :]
     link_PS = link[-1:2:-1, :]
@@ -131,12 +131,12 @@ def demand_constraint(binary_N_paths, tolerance):
     missedDemandNumPS = np.sum(PS_supply_demand_difference * PS_mask)
     return int(missedDemandNumJQJY + missedDemandNumPS) == 0, int(missedDemandNumJQJY + missedDemandNumPS)
 
-def rush_hour_constraint(binary_N_paths):
+def rush_hour_constraint(solution_chromosome):
     '''
     during rush hours, one interval is not enough time to commute
     '''
     violationCount = 0
-    for one_path_double_digit in binary_N_paths:
+    for one_path_double_digit in solution_chromosome:
         one_path_single_digit_list = []
         one_path_double_digit_list = list(one_path_double_digit)
         for i in range(len(one_path_double_digit_list)):
@@ -150,12 +150,12 @@ def rush_hour_constraint(binary_N_paths):
             violationCount += 1
     return int(violationCount) == 0, int(violationCount)
 
-def max_working_hour_constraint(binary_N_paths):
+def max_working_hour_constraint(solution_chromosome):
     '''
     make sure that no driver works more than a few hours continuously
     '''
     violationCount = 0
-    for one_path_double_digit in binary_N_paths:
+    for one_path_double_digit in solution_chromosome:
         one_path_single_digit_list = []
         one_path_double_digit_list = list(one_path_double_digit)
         for i in range(len(one_path_double_digit_list)):
@@ -180,7 +180,7 @@ def max_working_hour_constraint(binary_N_paths):
         violationCount += sum(np.array(num_list) > maxWorkingHour / intervalDuration)
     return int(violationCount) == 0, int(violationCount)
 
-def check_feasibility(binary_N_paths, checkDemand=True, checkRushHour=False, checkMaxWorkingHour=False):
+def check_feasibility(solution_chromosome, checkDemand=True, checkRushHour=False, checkMaxWorkingHour=False):
     '''
     s.t. constraints (make sure initial paths & crossover paths & mutated paths are feasible)
     constraint1: meet demand
@@ -189,11 +189,11 @@ def check_feasibility(binary_N_paths, checkDemand=True, checkRushHour=False, che
     '''
     demandFlag, rushHour, maxWorkingHour = True, True, True
     if checkDemand:
-        demandFlag, demandViolationNum = demand_constraint(binary_N_paths, tolerance)
+        demandFlag, demandViolationNum = demand_constraint(solution_chromosome, tolerance)
     if checkRushHour:
-        rushHour, rushHourViolationNum = rush_hour_constraint(binary_N_paths)
+        rushHour, rushHourViolationNum = rush_hour_constraint(solution_chromosome)
     if checkMaxWorkingHour:
-        maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(binary_N_paths)
+        maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(solution_chromosome)
     if not demandFlag:
         print("d"+str(demandViolationNum), end="")
     if not rushHour:
@@ -202,14 +202,14 @@ def check_feasibility(binary_N_paths, checkDemand=True, checkRushHour=False, che
         print("w"+str(maxWorkingHourViolationNum), end="")
     return demandFlag and rushHour and maxWorkingHour
 
-def fitness(binary_N_paths, addPenalty=False):
+def fitness(solution_chromosome, addPenalty=False):
     """
     objective function ish -> natural selection to pick the good ones
     the lower the better!!
     """
     total_cost = 0
     # basic cost
-    for one_path_double_digit in binary_N_paths:
+    for one_path_double_digit in solution_chromosome:
         one_path_single_digit_list = []
         one_path_double_digit_list = list(one_path_double_digit)
         for i in range(len(one_path_double_digit_list)):
@@ -231,9 +231,9 @@ def fitness(binary_N_paths, addPenalty=False):
             total_cost += (20 * intervalDuration) * duration_interval_num
     # add penalty
     if addPenalty:
-        demandFlag, demandViolationNum = demand_constraint(binary_N_paths, tolerance)
-        rushHour, rushHourViolatonNum = rush_hour_constraint(binary_N_paths)
-        maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(binary_N_paths)
+        demandFlag, demandViolationNum = demand_constraint(solution_chromosome, tolerance)
+        rushHour, rushHourViolatonNum = rush_hour_constraint(solution_chromosome)
+        maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(solution_chromosome)
         if checkDemandFlag:
             total_cost += alpha * demandViolationNum * demandViolationPenalty
         if checkRushHourFlag:
@@ -245,9 +245,9 @@ def fitness(binary_N_paths, addPenalty=False):
 def generate_population(population_size):
     population, fitness_scores_add_penalty = [], []
     for _ in range(population_size):
-        binary_N_paths = generate_random_N_paths(N, intervalNum)
-        population.append(binary_N_paths)
-        fitness_score_add_penalty = fitness(binary_N_paths, addPenalty=True)
+        solution_chromosome = generate_random_N_paths(N, intervalNum)
+        population.append(solution_chromosome)
+        fitness_score_add_penalty = fitness(solution_chromosome, addPenalty=True)
         fitness_scores_add_penalty.append(fitness_score_add_penalty)
     return np.array(population), np.array(fitness_scores_add_penalty)
 
@@ -300,26 +300,26 @@ def single_point_crossover(parent1, parent2):
         count += 1
     return parent1, parent2
 
-def single_mutation(binary_N_paths):
+def single_mutation(solution_chromosome):
     """
     Mutate only one node in one path for now
     """
     count = 0
-    binary_N_paths_copy = binary_N_paths.copy()
+    solution_chromosome_copy = solution_chromosome.copy()
     while count <= loop_limit:
         mutate_path = np.random.randint(0, N)
         mutate_index = np.random.randint(0, intervalNum) * 2
-        double_digits_to_mutate = binary_N_paths_copy[mutate_path][mutate_index:mutate_index+2]
+        double_digits_to_mutate = solution_chromosome_copy[mutate_path][mutate_index:mutate_index+2]
         pool = ['00', '01', '10']
         pool.remove(double_digits_to_mutate)
         mutated_double_digits = random.choices(population=pool)[0]
-        original_string = binary_N_paths_copy[mutate_path]
+        original_string = solution_chromosome_copy[mutate_path]
         mutated_string = original_string[:mutate_index] + mutated_double_digits + original_string[mutate_index+2:]
         if check_path_integrity(mutated_string):
-            binary_N_paths_copy[mutate_path] = mutated_string
-            return binary_N_paths_copy
+            solution_chromosome_copy[mutate_path] = mutated_string
+            return solution_chromosome_copy
         count += 1
-    return binary_N_paths
+    return solution_chromosome
 
 def result_stats(progress_with_penalty, progress):
     """
@@ -347,7 +347,7 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
     population, population_fitnesses_add_penalty = generate_population(population_size)
     initialization_end = time.time()
     print(f'\nInitialization Done! Time: {initialization_end - tic:.6f}s')
-    population_fitnesses = [fitness(binary_N_paths) for binary_N_paths in population]
+    population_fitnesses = [fitness(solution_chromosome) for solution_chromosome in population]
     print(f'Initial Min Cost: {min(population_fitnesses_add_penalty)} -> {min(population_fitnesses)}')
     # keep track of improvement
     progress_with_penalty, progress = [], []
@@ -363,8 +363,8 @@ def run_evolution(population_size, evolution_depth, elitism_cutoff):
         children = create_next_generation(population, population_fitnesses_add_penalty, population_size, elitism_cutoff)
         print('Children created!')
         population = np.concatenate([elites, children])
-        population_fitnesses_add_penalty = [fitness(binary_N_paths, addPenalty=True) for binary_N_paths in population]
-        population_fitnesses = [fitness(binary_N_paths) for binary_N_paths in population]
+        population_fitnesses_add_penalty = [fitness(solution_chromosome, addPenalty=True) for solution_chromosome in population]
+        population_fitnesses = [fitness(solution_chromosome) for solution_chromosome in population]
         
         evol_end = time.time()
         print(f"Min Cost: {min(population_fitnesses_add_penalty)} -> {min(population_fitnesses)}")
@@ -395,12 +395,12 @@ if __name__ == "__main__":
 
     """initialization for buses"""
     # # of buses
-    N = 23
+    N = 100
     # #seats on each bus
     D = 50
     tolerance = 0
     intervalDuration = 0.5
-    # numerical example 1
+    # numerical example
     demand = np.array([
         [114,106,132,132,117,83,57,52,13,8,18,13,26,3,13,10,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0], 
         [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
