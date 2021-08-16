@@ -12,15 +12,18 @@ import matplotlib.pyplot as plt
 
 
 def generate_random_N_paths(N, path_length):
-    '''
+    """
     Randomize N paths (1 path is like 010101010101) to generate one solution
-    '''
+    """
     one_solution = []
     for _ in range(N):
         # set the weights to initialize feasible solution faster
-        one_path = random.choices(population=[0, 1], weights=[1-initial_prob, initial_prob], k=path_length)
+        one_path = random.choices(
+            population=[0, 1], weights=[1 - initial_prob, initial_prob], k=path_length
+        )
         one_solution.append(one_path)
     return np.array(one_solution)
+
 
 def decode_one_path(one_path):
     decoded = []
@@ -36,33 +39,34 @@ def decode_one_path(one_path):
         else:
             previous_path = decoded[i]
             assert sum(previous_path) == 1
-            if previous_path[0] == 1: # A
-                if current_node == 0: # A
+            if previous_path[0] == 1:  # A
+                if current_node == 0:  # A
                     decoded.append([1, 0, 0, 0])
-                else: # B
+                else:  # B
                     decoded.append([0, 1, 0, 0])
-            elif previous_path[1] == 1: # B
-                if current_node == 0: # D
+            elif previous_path[1] == 1:  # B
+                if current_node == 0:  # D
                     decoded.append([0, 0, 0, 1])
-                else: # C
+                else:  # C
                     decoded.append([0, 0, 1, 0])
-            elif previous_path[2] == 1: # C
-                if current_node == 0: # A
+            elif previous_path[2] == 1:  # C
+                if current_node == 0:  # A
                     decoded.append([1, 0, 0, 0])
-                else: # B
+                else:  # B
                     decoded.append([0, 1, 0, 0])
             else:
-                if current_node == 0: # D
+                if current_node == 0:  # D
                     decoded.append([0, 0, 0, 1])
-                else: # C
+                else:  # C
                     decoded.append([0, 0, 1, 0])
         i, previous_node = j, current_node
     return np.array(decoded).T
 
+
 def demand_constraint(binary_N_paths, tolerance):
-    '''
+    """
     make sure the demand is met
-    '''
+    """
     # get the link representation first
     directional_N_paths = [decode_one_path(one_path) for one_path in binary_N_paths]
     link = sum(directional_N_paths)
@@ -71,10 +75,11 @@ def demand_constraint(binary_N_paths, tolerance):
     missedDemandNum = np.sum(supplyDemandDifference * mask)
     return int(missedDemandNum) == 0, int(missedDemandNum)
 
+
 def rush_hour_constraint(binary_N_paths):
-    '''
+    """
     during rush hours, one interval is not enough time to commute
-    '''
+    """
     violationCount = 0
     for one_path in binary_N_paths:
         # morning rush hour
@@ -85,10 +90,11 @@ def rush_hour_constraint(binary_N_paths):
             violationCount += 1
     return int(violationCount) == 0, int(violationCount)
 
+
 def max_working_hour_constraint(binary_N_paths):
-    '''
+    """
     make sure that no driver works more than a few hours continuously
-    '''
+    """
     violationCount = 0
     for one_path in binary_N_paths:
         num, num_list = 0, []
@@ -101,38 +107,49 @@ def max_working_hour_constraint(binary_N_paths):
                 one_path_copy[22] = 1
         for i, node in enumerate(one_path_copy):
             num += node
-            if i+1 == len(one_path_copy):
+            if i + 1 == len(one_path_copy):
                 num_list.append(num)
                 continue
-            if node == 1 and one_path_copy[i+1] == 0:
+            if node == 1 and one_path_copy[i + 1] == 0:
                 num_list.append(num)
                 num = 0
         violationCount += sum(np.array(num_list) > maxWorkingHour / intervalDuration)
     return int(violationCount) == 0, int(violationCount)
 
-def check_feasibility(binary_N_paths, checkDemand=True, checkRushHour=False, checkMaxWorkingHour=False):
-    '''
+
+def check_feasibility(
+    binary_N_paths, checkDemand=True, checkRushHour=False, checkMaxWorkingHour=False
+):
+    """
     s.t. constraints (make sure initial paths & crossover paths & mutated paths are feasible)
     constraint1: meet demand
     constraint2: during rush hours, one interval is not enough time to commute (optional)
     constraint3: make sure that no driver works more than a few hours continuously
-    '''
+    """
     demandFlag, rushHour, maxWorkingHour = True, True, True
     if checkDemand:
         demandFlag, demandViolationNum = demand_constraint(binary_N_paths, tolerance)
     if checkRushHour:
         rushHour, rushHourViolationNum = rush_hour_constraint(binary_N_paths)
     if checkMaxWorkingHour:
-        maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(binary_N_paths)
+        maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(
+            binary_N_paths
+        )
     if not demandFlag:
-        print("d"+str(demandViolationNum), end="")
+        print("d" + str(demandViolationNum), end="")
     if not rushHour:
-        print("r"+str(rushHourViolationNum), end="")
+        print("r" + str(rushHourViolationNum), end="")
     else:
         rushHourViolationNum = -1
     if not maxWorkingHour:
-        print("w"+str(maxWorkingHourViolationNum), end="")
-    return demandFlag and rushHour and maxWorkingHour, "d"+str(demandViolationNum), "r"+str(rushHourViolationNum), "w"+str(maxWorkingHourViolationNum)
+        print("w" + str(maxWorkingHourViolationNum), end="")
+    return (
+        demandFlag and rushHour and maxWorkingHour,
+        "d" + str(demandViolationNum),
+        "r" + str(rushHourViolationNum),
+        "w" + str(maxWorkingHourViolationNum),
+    )
+
 
 def fitness(binary_N_paths, addPenalty=False):
     """
@@ -159,7 +176,9 @@ def fitness(binary_N_paths, addPenalty=False):
     if addPenalty:
         demandFlag, demandViolationNum = demand_constraint(binary_N_paths, tolerance)
         rushHour, rushHourViolatonNum = rush_hour_constraint(binary_N_paths)
-        maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(binary_N_paths)
+        maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(
+            binary_N_paths
+        )
         if checkDemandFlag:
             total_cost += alpha * demandViolationNum * demandViolationPenalty
         if checkRushHourFlag:
@@ -167,6 +186,7 @@ def fitness(binary_N_paths, addPenalty=False):
         if maxWorkingHourViolationPenalty:
             total_cost += maxWorkingHourViolationNum * maxWorkingHourViolationPenalty
     return total_cost
+
 
 def generate_population(population_size):
     population, fitness_scores_add_penalty = [], []
@@ -177,9 +197,13 @@ def generate_population(population_size):
         fitness_scores_add_penalty.append(fitness_score_add_penalty)
     return np.array(population), np.array(fitness_scores_add_penalty)
 
+
 def elitism(population, fitness_scores, elitism_cutoff=2):
-    elite_indices = np.argpartition(np.array(fitness_scores), elitism_cutoff)[:elitism_cutoff]
+    elite_indices = np.argpartition(np.array(fitness_scores), elitism_cutoff)[
+        :elitism_cutoff
+    ]
     return population[elite_indices, :]
+
 
 def create_next_generation(population, fitness_scores, population_size, elitism_cutoff):
     """
@@ -189,8 +213,16 @@ def create_next_generation(population, fitness_scores, population_size, elitism_
     while True:
         parents = random.choices(
             population=population,
-            weights=[(max(fitness_scores) - score + 1)/(max(fitness_scores) * len(fitness_scores) - sum(fitness_scores) + len(fitness_scores)) for score in fitness_scores],
-            k=2
+            weights=[
+                (max(fitness_scores) - score + 1)
+                / (
+                    max(fitness_scores) * len(fitness_scores)
+                    - sum(fitness_scores)
+                    + len(fitness_scores)
+                )
+                for score in fitness_scores
+            ],
+            k=2,
         )
         kid1, kid2 = single_point_crossover(parents[0], parents[1])
         for _ in range(mutation_num):
@@ -203,6 +235,7 @@ def create_next_generation(population, fitness_scores, population_size, elitism_
         children.append(kid2)
         if len(children) == population_size - elitism_cutoff:
             return np.array(children)
+
 
 def single_point_crossover(parent1, parent2):
     """
@@ -218,103 +251,156 @@ def single_point_crossover(parent1, parent2):
     kid2 = np.append(parent2[0:cut, :], parent1[cut:, :]).reshape((N, intervalNum))
     return kid1, kid2
 
+
 def mutation(binary_N_paths):
     """
     Mutate only one node in one path for now
     """
     # case 1: concentional mutation implementation
-    if mutationType == 'Conv':
+    if mutationType == "Conv":
         path_num, node_num = binary_N_paths.shape
         for k in range(path_num):
             for i in range(node_num):
-                binary_N_paths[k, i] = binary_N_paths[k, i] if random.random() > mutation_prob else abs(binary_N_paths[k, i] - 1)
+                binary_N_paths[k, i] = (
+                    binary_N_paths[k, i]
+                    if random.random() > mutation_prob
+                    else abs(binary_N_paths[k, i] - 1)
+                )
     # case 2: self-designed mutation implementation
     else:
         mutate_path = np.random.randint(0, N)
         mutate_node = np.random.randint(0, intervalNum)
-        binary_N_paths[mutate_path][mutate_node] = abs(1 - binary_N_paths[mutate_path][mutate_node])
+        binary_N_paths[mutate_path][mutate_node] = abs(
+            1 - binary_N_paths[mutate_path][mutate_node]
+        )
     return binary_N_paths
+
 
 def result_stats(progress_with_penalty, progress):
     """
     print important stats & visulize progress_with_penalty
     """
-    print('**************************************************************')
-    print(f"Progress_with_penalty of improvement: {progress_with_penalty[0]} to {progress_with_penalty[-1]}" )
+    print("**************************************************************")
+    print(
+        f"Progress_with_penalty of improvement: {progress_with_penalty[0]} to {progress_with_penalty[-1]}"
+    )
     print(f"Progress of improvement: {progress[0]} to {progress[-1]}")
-    print("Improvement Rate of progress:", abs(progress[-1] - progress[0])/progress[0])
-    print('**************************************************************')
-    with open(file_name + '.txt', 'a') as file:
-        file.writelines('**************************************************************\n')
-        file.writelines(f"Progress_with_penalty of improvement: {progress_with_penalty[0]} to {progress_with_penalty[-1]}\n" )
+    print(
+        "Improvement Rate of progress:", abs(progress[-1] - progress[0]) / progress[0]
+    )
+    print("**************************************************************")
+    with open(file_name + ".txt", "a") as file:
+        file.writelines(
+            "**************************************************************\n"
+        )
+        file.writelines(
+            f"Progress_with_penalty of improvement: {progress_with_penalty[0]} to {progress_with_penalty[-1]}\n"
+        )
         file.writelines(f"Progress of improvement: {progress[0]} to {progress[-1]}\n")
-        file.writelines(f"Improvement Rate of progress: {abs(progress[-1] - progress[0])/progress[0]}\n")
-        file.writelines('**************************************************************\n\n')
-    plt.plot(progress_with_penalty, data=progress_with_penalty, label='with penalty')
-    plt.plot(progress, data=progress, label='no penalty')
+        file.writelines(
+            f"Improvement Rate of progress: {abs(progress[-1] - progress[0])/progress[0]}\n"
+        )
+        file.writelines(
+            "**************************************************************\n\n"
+        )
+    plt.plot(progress_with_penalty, data=progress_with_penalty, label="with penalty")
+    plt.plot(progress, data=progress, label="no penalty")
     plt.xlabel("Generation")
     plt.ylabel("Cost")
     plt.legend()
-    plt.savefig(file_name + '.png')
+    plt.savefig(file_name + ".png")
+
 
 def run_evolution(population_size, evolution_depth, elitism_cutoff):
-    '''
+    """
     Main function of Genetic Algorithm
-    '''
+    """
     tic = time.time()
 
-    # first initialize a population 
+    # first initialize a population
     population, population_fitnesses_add_penalty = generate_population(population_size)
     initialization_end = time.time()
-    print('\nInitialization Done!', initialization_end - tic)
+    print("\nInitialization Done!", initialization_end - tic)
     population_fitnesses = [fitness(binary_N_paths) for binary_N_paths in population]
-    print(f'Initial Min Cost: {min(population_fitnesses_add_penalty)} -> {min(population_fitnesses)}')
+    print(
+        f"Initial Min Cost: {min(population_fitnesses_add_penalty)} -> {min(population_fitnesses)}"
+    )
     # keep track of improvement
     progress_with_penalty, progress = [], []
-    
+
     # start evolving :)
     for i in range(evolution_depth):
         progress_with_penalty.append(min(population_fitnesses_add_penalty))
         progress.append(min(population_fitnesses))
-        print(f'----------------------------- generation {i + 1} Start! -----------------------------')
+        print(
+            f"----------------------------- generation {i + 1} Start! -----------------------------"
+        )
         elitism_begin = time.time()
         elites = elitism(population, population_fitnesses_add_penalty, elitism_cutoff)
-        print('Elites selected!')
-        children = create_next_generation(population, population_fitnesses_add_penalty, population_size, elitism_cutoff)
-        print('Children created!')
+        print("Elites selected!")
+        children = create_next_generation(
+            population,
+            population_fitnesses_add_penalty,
+            population_size,
+            elitism_cutoff,
+        )
+        print("Children created!")
         population = np.concatenate([elites, children])
-        population_fitnesses_add_penalty = [fitness(binary_N_paths, addPenalty=True) for binary_N_paths in population]
-        population_fitnesses = [fitness(binary_N_paths) for binary_N_paths in population]
-        
+        population_fitnesses_add_penalty = [
+            fitness(binary_N_paths, addPenalty=True) for binary_N_paths in population
+        ]
+        population_fitnesses = [
+            fitness(binary_N_paths) for binary_N_paths in population
+        ]
+
         evol_end = time.time()
-        print(f"Min Cost: {min(population_fitnesses_add_penalty)} -> {min(population_fitnesses)}")
+        print(
+            f"Min Cost: {min(population_fitnesses_add_penalty)} -> {min(population_fitnesses)}"
+        )
         # check best solution feasibility
-        minIndex = population_fitnesses_add_penalty.index(min(population_fitnesses_add_penalty))
+        minIndex = population_fitnesses_add_penalty.index(
+            min(population_fitnesses_add_penalty)
+        )
         best_solution = population[minIndex]
-        allFeasibilityFlag, _, _, _ = check_feasibility(best_solution, checkDemand=checkDemandFlag, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag)
+        allFeasibilityFlag, _, _, _ = check_feasibility(
+            best_solution,
+            checkDemand=checkDemandFlag,
+            checkRushHour=checkRushHourFlag,
+            checkMaxWorkingHour=checkMaxWorkingHourFlag,
+        )
         print("\nAll constraints met?", allFeasibilityFlag)
 
         # print best solution
-        print('best solution (path):\n', best_solution)
-        directional_N_paths = [decode_one_path(one_path) for one_path in population[minIndex]]
+        print("best solution (path):\n", best_solution)
+        directional_N_paths = [
+            decode_one_path(one_path) for one_path in population[minIndex]
+        ]
         link = sum(directional_N_paths)
-        print('best solution (link): \n', link)
+        print("best solution (link): \n", link)
 
-        print(f'---------------------- generation {i + 1} evolved! Time: {evol_end - elitism_begin:.4f}s ----------------------\n')
-    
+        print(
+            f"---------------------- generation {i + 1} evolved! Time: {evol_end - elitism_begin:.4f}s ----------------------\n"
+        )
+
     # plot results
     result_stats(progress_with_penalty, progress)
 
     ### Write to file
-    with open(file_name + '.txt', 'a') as file:
-        minIndex = population_fitnesses_add_penalty.index(min(population_fitnesses_add_penalty))
+    with open(file_name + ".txt", "a") as file:
+        minIndex = population_fitnesses_add_penalty.index(
+            min(population_fitnesses_add_penalty)
+        )
         best_solution = population[minIndex]
-        file.writelines('best solution (path):\n' + str(best_solution))
+        file.writelines("best solution (path):\n" + str(best_solution))
 
-        file.writelines(f"\nAll constraints met? {check_feasibility(best_solution, checkDemand=checkDemandFlag, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag)}")
-        directional_N_paths = [decode_one_path(one_path) for one_path in population[minIndex]]
+        file.writelines(
+            f"\nAll constraints met? {check_feasibility(best_solution, checkDemand=checkDemandFlag, checkRushHour=checkRushHourFlag, checkMaxWorkingHour=checkMaxWorkingHourFlag)}"
+        )
+        directional_N_paths = [
+            decode_one_path(one_path) for one_path in population[minIndex]
+        ]
         link = sum(directional_N_paths)
-        file.writelines('\nbest solution (link): \n' + str(link))
+        file.writelines("\nbest solution (link): \n" + str(link))
 
 
 if __name__ == "__main__":
@@ -323,9 +409,9 @@ if __name__ == "__main__":
     initial_prob = 0.8
     population_size = 20
     elitism_cutoff = 2
-    mutationType = 'New' # Conv
+    mutationType = "New"  # Conv
     mutation_prob = 0.95
-    mutation_num = 1 if mutationType == 'Conv' else 1
+    mutation_num = 1 if mutationType == "Conv" else 1
     evolution_depth = 5
 
     """initialization for buses"""
@@ -336,28 +422,114 @@ if __name__ == "__main__":
     tolerance = 0
     intervalDuration = 0.5
     # numerical example
-    demand = np.array([
-        [114,106,132,132,117,83,57,52,13,8,18,13,26,3,13,10,0,0,0,0,0,3,0,0,0,0,0,0,0,0,0,0,0,0], 
-        [0,0,0,0,0,0,14,2,0,7,12,7,9,5,7,7,12,9,32,39,53,35,30,18,60,44,60,53,90,58,78,71,35,55]
-    ])
+    demand = np.array(
+        [
+            [
+                114,
+                106,
+                132,
+                132,
+                117,
+                83,
+                57,
+                52,
+                13,
+                8,
+                18,
+                13,
+                26,
+                3,
+                13,
+                10,
+                0,
+                0,
+                0,
+                0,
+                0,
+                3,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ],
+            [
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                14,
+                2,
+                0,
+                7,
+                12,
+                7,
+                9,
+                5,
+                7,
+                7,
+                12,
+                9,
+                32,
+                39,
+                53,
+                35,
+                30,
+                18,
+                60,
+                44,
+                60,
+                53,
+                90,
+                58,
+                78,
+                71,
+                35,
+                55,
+            ],
+        ]
+    )
 
     intervalNum = demand.shape[-1]
     maxWorkingHour = 4
     checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag = True, False, True
-    alpha, demandViolationPenalty, rushHourViolationPenalty, maxWorkingHourViolationPenalty = 1, 10, 7, 5
+    (
+        alpha,
+        demandViolationPenalty,
+        rushHourViolationPenalty,
+        maxWorkingHourViolationPenalty,
+    ) = (1, 10, 7, 5)
 
-    print('####################################\n')
-    print(f'N = {N}\n')
-    print(f'checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag = {checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag}\n')
-    print('####################################\n\n')
+    print("####################################\n")
+    print(f"N = {N}\n")
+    print(
+        f"checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag = {checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag}\n"
+    )
+    print("####################################\n\n")
 
     ### Write to file
-    file_name = str(N) + str(checkDemandFlag) + str(checkRushHourFlag) + str(checkMaxWorkingHourFlag) 
-    with open(file_name + '.txt', 'w') as file:
-        file.writelines('####################################\n')
-        file.writelines(f'N = {N}\n')
-        file.writelines(f'checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag = {checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag}\n')
-        file.writelines('####################################\n\n')
+    file_name = (
+        str(N)
+        + str(checkDemandFlag)
+        + str(checkRushHourFlag)
+        + str(checkMaxWorkingHourFlag)
+    )
+    with open(file_name + ".txt", "w") as file:
+        file.writelines("####################################\n")
+        file.writelines(f"N = {N}\n")
+        file.writelines(
+            f"checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag = {checkDemandFlag, checkRushHourFlag, checkMaxWorkingHourFlag}\n"
+        )
+        file.writelines("####################################\n\n")
 
     # run main function
     run_evolution(population_size, evolution_depth, elitism_cutoff)
