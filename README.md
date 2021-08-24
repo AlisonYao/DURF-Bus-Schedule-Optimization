@@ -4,9 +4,9 @@ Building on our [final project](https://github.com/AlisonYao/Optimization-Final-
 
 Special thanks to Professor Zhibin Chen, the supervisor of this research project, for offering us guidance along the way and Dean's Undergraduate Research Fund (DURF) for generously providing us research funding.
 
-<!-- ## Paper
+## DURF Report
 
-The research outcome is presented in the form of an academic paper. Please see `report.docx`. -->
+The research outcome is presented in the form of a report. Please see `DURF_report.docx`.
 
 ## Codes for Genetic Algorithm
 
@@ -21,6 +21,7 @@ The file Genetic Algorithm has all of my codes in progress.
 - `baseline_v2.py` is the successful second attempt at the **baseline problem** where I converted the demand constraint into penalty. Although meeting the demand is not guaranteed at first, the solution will eventually satify demand over time. Same with the rush hour constraint and the max working hour constraint. `baseline_solution.py` is the duplicate of this file.
 - `extension.py` is a failed first attempt at the **extended problem**.
 - `extension_v2.py` is a successful solution to the **extended problem**. `extended_solution.py` is the duplicate of this file.
+- `hpc_shuttle_v2.py` just outputs results into txt files.
 - `temp.py` is just a file for testing that doesn't have anything important.
 
 <!-- ## Blogs -->
