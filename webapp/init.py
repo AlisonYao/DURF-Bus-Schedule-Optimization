@@ -581,10 +581,12 @@ def baseline():
         link = sum(directional_N_paths)
         print("best solution (link): \n", link)
 
-        print(link)
-        return link
+        return str(link)
 
-    return render_template("baseline.html", output=run_evolution(evolution_depth))
+    return render_template(
+        "baseline.html",
+        output=run_evolution(population_size, evolution_depth, elitism_cutoff),
+    )
 
 
 if __name__ == "__main__":
