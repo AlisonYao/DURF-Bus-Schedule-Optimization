@@ -330,6 +330,40 @@ def baseline():
             print("w" + str(maxWorkingHourViolationNum), end="")
         return demandFlag and rushHour and maxWorkingHour
 
+    def violation_result(
+        solution_chromosome,
+        checkDemand=True,
+        checkRushHour=False,
+        checkMaxWorkingHour=False,
+    ):
+        """
+        return violation results
+        """
+        demandFlag, rushHour, maxWorkingHour = True, True, True
+        demandViolationNum, rushHourViolationNum, maxWorkingHourViolationNum = (
+            -1,
+            -1,
+            -1,
+        )
+        if checkDemand:
+            demandFlag, demandViolationNum = demand_constraint(
+                solution_chromosome, tolerance
+            )
+        if checkRushHour:
+            rushHour, rushHourViolationNum = rush_hour_constraint(solution_chromosome)
+        if checkMaxWorkingHour:
+            maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(
+                solution_chromosome
+            )
+
+        if not demandFlag:
+            print("d" + str(demandViolationNum), end="")
+        if not rushHour:
+            print("r" + str(rushHourViolationNum), end="")
+        if not maxWorkingHour:
+            print("w" + str(maxWorkingHourViolationNum), end="")
+        return (demandViolationNum, rushHourViolationNum, maxWorkingHourViolationNum)
+
     def fitness(solution_chromosome, addPenalty=False):
         """
         objective function ish -> natural selection to pick the good ones
@@ -582,20 +616,41 @@ def baseline():
         link = sum(directional_N_paths)
         print("best solution (link): \n", link)
 
-        return str(link[1, :]), str(link[2, :]), str(allFeasibilityFlag), progress[-1]
+        return (
+            str(link[1, :]),
+            str(link[2, :]),
+            str(allFeasibilityFlag),
+            progress[-1],
+            best_solution,
+        )
 
-    baselineOutput1, baselineOutput2, allFeasibilityFlag, minCost = run_evolution(
-        population_size, evolution_depth, elitism_cutoff
+    (
+        baselineOutput1,
+        baselineOutput2,
+        allFeasibilityFlag,
+        minCost,
+        best_solution,
+    ) = run_evolution(population_size, evolution_depth, elitism_cutoff)
+
+    (
+        demandViolationNum,
+        rushHourViolationNum,
+        maxWorkingHourViolationNum,
+    ) = violation_result(
+        best_solution,
+        checkDemand=checkDemandFlag,
+        checkRushHour=checkRushHourFlag,
+        checkMaxWorkingHour=checkMaxWorkingHourFlag,
     )
-
-    print("$$$$$$$", baselineOutput1, baselineOutput2, allFeasibilityFlag, minCost)
-
     return render_template(
         "baseline.html",
         baselineOutput1=baselineOutput1,
         baselineOutput2=baselineOutput2,
         allFeasibilityFlag=allFeasibilityFlag,
         minCost=minCost,
+        demandViolationNum=demandViolationNum,
+        rushHourViolationNum=rushHourViolationNum,
+        maxWorkingHourViolationNum=maxWorkingHourViolationNum,
     )
 
 
@@ -1138,6 +1193,40 @@ def extension():
             print("w" + str(maxWorkingHourViolationNum), end="")
         return demandFlag and rushHour and maxWorkingHour
 
+    def violation_result(
+        solution_chromosome,
+        checkDemand=True,
+        checkRushHour=False,
+        checkMaxWorkingHour=False,
+    ):
+        """
+        return violation results
+        """
+        demandFlag, rushHour, maxWorkingHour = True, True, True
+        demandViolationNum, rushHourViolationNum, maxWorkingHourViolationNum = (
+            -1,
+            -1,
+            -1,
+        )
+        if checkDemand:
+            demandFlag, demandViolationNum = demand_constraint(
+                solution_chromosome, tolerance
+            )
+        if checkRushHour:
+            rushHour, rushHourViolationNum = rush_hour_constraint(solution_chromosome)
+        if checkMaxWorkingHour:
+            maxWorkingHour, maxWorkingHourViolationNum = max_working_hour_constraint(
+                solution_chromosome
+            )
+
+        if not demandFlag:
+            print("d" + str(demandViolationNum), end="")
+        if not rushHour:
+            print("r" + str(rushHourViolationNum), end="")
+        if not maxWorkingHour:
+            print("w" + str(maxWorkingHourViolationNum), end="")
+        return (demandViolationNum, rushHourViolationNum, maxWorkingHourViolationNum)
+
     def fitness(binary_N_paths, addPenalty=False):
         """
         objective function ish -> natural selection to pick the good ones
@@ -1417,6 +1506,7 @@ def extension():
             str(link[4]),
             str(allFeasibilityFlag),
             progress[-1],
+            best_solution,
         )
 
     (
@@ -1426,7 +1516,20 @@ def extension():
         extensionOutput4,
         allFeasibilityFlag,
         minCost,
+        best_solution,
     ) = run_evolution(population_size, evolution_depth, elitism_cutoff)
+
+    (
+        demandViolationNum,
+        rushHourViolationNum,
+        maxWorkingHourViolationNum,
+    ) = violation_result(
+        best_solution,
+        checkDemand=checkDemandFlag,
+        checkRushHour=checkRushHourFlag,
+        checkMaxWorkingHour=checkMaxWorkingHourFlag,
+    )
+
     return render_template(
         "extension.html",
         extensionOutput1=extensionOutput1,
@@ -1435,6 +1538,9 @@ def extension():
         extensionOutput4=extensionOutput4,
         allFeasibilityFlag=allFeasibilityFlag,
         minCost=minCost,
+        demandViolationNum=demandViolationNum,
+        rushHourViolationNum=rushHourViolationNum,
+        maxWorkingHourViolationNum=maxWorkingHourViolationNum,
     )
 
 

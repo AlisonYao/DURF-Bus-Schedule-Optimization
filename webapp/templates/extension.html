@@ -37,11 +37,20 @@
     {% endif %}
     <br>
     {% if allFeasibilityFlag %}
-        <p>All constraints met?: {{allFeasibilityFlag}}</p>
+        <h6>All constraints met?: {{allFeasibilityFlag}}</h6>
+    {% endif %}
+    {% if allFeasibilityFlag %}
+        <div>
+            <p>demand constraint violations: {{demandViolationNum}}</p>
+            <p>rush hour constraint violations: {{rushHourViolationNum}}</p>
+            <p>max working hour constraint violations: {{maxWorkingHourViolationNum}}</p>
+        </div>
     {% endif %}
     {% if minCost %}
-        <p>Min cost of the last iteration: {{minCost}}RMB</p>
+        <h5>Min cost of the last iteration: {{minCost}}RMB</h5>
     {% endif %}
+
+    <a href='/' class="btn btn-primary">Try Again</a>
     
     <!-- Contact Info session -->
     <footer style="background-color: #444343; width: 100%; height: 170px; position:absolute; bottom:0;">
