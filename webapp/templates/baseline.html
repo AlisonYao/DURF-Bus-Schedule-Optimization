@@ -14,15 +14,19 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <!-- Add icon library -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    </style>
     <title>baseline</title>
 </head>
-<body style="text-align: center">
+<body style="text-align: center;">
     {% if baselineOutput %}
-        <p class="baselineOutput">baselineOutput: {{baselineOutput}}</p>
+        <div style="width: 100%; height: auto;">
+            <h4 class="baselineOutput">Baseline Output:</h4>
+            <p class="baselineOutput">{{baselineOutput}}</p>
+        </div>
     {% endif %}
 
     <!-- Contact Info session -->
-    <div style="background-color: #444343;">
+    <footer style="background-color: #444343; width: 100%; height: 170px; position:absolute; bottom:0;">
         <br>
         <div style="font-size: 40px; margin-left: 10px; margin-right: 10px">
             <a href="https://github.com/AlisonYao" class="fa fa-github" style="color: white;"></a>
@@ -33,8 +37,8 @@
             &nbsp;
         </div>
         <br>
-        <h6 style="color: white;">Copyright 2021. All rights reserved.</h6>
+        <h6 style="color: white;">Copyright &#169; 2021 Alison Yuhan Yao. All rights reserved</h6>
         <br>
-    </div>
+    </footer>
 </body>
 </html>
