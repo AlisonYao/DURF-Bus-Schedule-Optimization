@@ -49,6 +49,10 @@ FLASK_APP=init.py flask run
 
 ![readme_3](./webapp/static/readme_3.png)
 
+Here is a video that showcases what you should be seeing:
+
+[![video showcase](https://img.youtube.com/vi/QzzUMsPqxe0/0.jpg)](https://www.youtube.com/watch?v=QzzUMsPqxe0&ab_channel=YuhanYao)
+
 Try for yourself and see you can get a better result than mine.
 
 ## Code for Genetic Algorithm
