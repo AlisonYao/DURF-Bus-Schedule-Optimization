@@ -12,6 +12,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
     <!-- Latest compiled JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <!-- Add icon library -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <title>Home Page</title>
 </head>
 <body style="text-align: center">
@@ -20,8 +22,8 @@
     <br>
     <br>
     <h3>Please read the <a href="https://github.com/AlisonYao/DURF-Bus-Schedule-Optimization/blob/main/DURF%20report.pdf">DURF report</a> first so that you have some idea of:</h3> 
-    <h5>which model to use, why there are so many parameters, and how to set these parameters</h5>
-    <br>
+    <h5>which model to use, why there are so many parameters, and how to set these parameters.</h5>
+    <h6>Check the code and project description <a href="https://github.com/AlisonYao/DURF-Bus-Schedule-Optimization">here</a>.</h6>
     <br>
     <br>
         <div class='container' style="text-align: center">
@@ -29,6 +31,7 @@
                 <div class="col">
                     <form action="/baseline" method="POST">
                         <h3>Baseline Problem</h3>
+                        <br>
                         <img src="../static/baseline_networks.png" alt='#' style="max-width: 100%;">
                         <br>
                         <br>
@@ -277,6 +280,7 @@
                 <div class="col">
                     <form action="/extension" method="POST">
                         <h3>Extended Problem</h3>
+                        <br>
                         <img src="../static/extension_networks.png" alt='#' style="max-width: 90%;">
                         <br>
                         <br>
@@ -347,245 +351,246 @@
                                 <input name="maxWorkingHourViolationPenalty" type="number" min="0" value="15" placeholder="15">
                             </div>
                         </div>
-                        <div class="baseline_demand">
-                            <h5>&nbsp;&nbsp;&nbsp;&nbsp;Jinqiao to AB&nbsp;&nbsp;&nbsp;&nbsp;AB to Jinqiao&nbsp;&nbsp;&nbsp;&nbsp;AB to Pusan&nbsp;&nbsp;&nbsp;&nbsp;Pusan to AB</h5>
+                        <br>
+                        <div class="extension_demand">
+                            <h5>&nbsp;&nbsp;&nbsp;Jinqiao to AB&nbsp;&nbsp;AB to Jinqiao&nbsp;&nbsp;AB to Pusan&nbsp;&nbsp;Pusan to AB</h5>
                             <div>
                                 <span>&nbsp;&nbsp;1&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand1" min="0" value='114' required> 
-                                <input type="number" name="AB2JQ_demand1" min="0" value='0' required>
-                                <input type="number" name="PS2AB_demand1" min="0" value='13' required> 
-                                <input type="number" name="AB2PS_demand1" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand1" min="0" value='114' required> 
+                                <input style="width: 115px" type="number" name="AB2JQ_demand1" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand1" min="0" value='13' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand1" min="0" value='0' required>
                             </div>
                             <div>
                                 <span>&nbsp;&nbsp;2&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand2" min="0" value='106' required>
-                                <input type="number" name="AB2JQ_demand2" min="0" value='0' required>
-                                <input type="number" name="PS2AB_demand2" min="0" value='12' required> 
-                                <input type="number" name="AB2PS_demand2" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand2" min="0" value='106' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand2" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand2" min="0" value='12' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand2" min="0" value='0' required>
                             </div>
                             <div>
                                 <span>&nbsp;&nbsp;3&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand3" min="0" value='132' required> 
-                                <input type="number" name="AB2JQ_demand3" min="0" value='0' required>
-                                <input type="number" name="PS2AB_demand3" min="0" value='15' required> 
-                                <input type="number" name="AB2PS_demand3" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand3" min="0" value='132' required> 
+                                <input style="width: 115px" type="number" name="AB2JQ_demand3" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand3" min="0" value='15' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand3" min="0" value='0' required>
                             </div>
                             <div>
                                 <span>&nbsp;&nbsp;4&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand4" min="0" value='132' required>
-                                <input type="number" name="AB2JQ_demand4" min="0" value='0' required>
-                                <input type="number" name="PS2AB_demand4" min="0" value='15' required> 
-                                <input type="number" name="AB2PS_demand4" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand4" min="0" value='132' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand4" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand4" min="0" value='15' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand4" min="0" value='0' required>
                             </div>
                             <div>
                                 <span>&nbsp;&nbsp;5&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand5" min="0" value='117' required>
-                                <input type="number" name="AB2JQ_demand5" min="0" value='0' required>
-                                <input type="number" name="PS2AB_demand5" min="0" value='13' required> 
-                                <input type="number" name="AB2PS_demand5" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand5" min="0" value='117' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand5" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand5" min="0" value='13' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand5" min="0" value='0' required>
                             </div>
                             <div>
                                 <span>&nbsp;&nbsp;6&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand6" min="0" value='83' required>
-                                <input type="number" name="AB2JQ_demand6" min="0" value='0' required>
-                                <input type="number" name="PS2AB_demand6" min="0" value='9' required> 
-                                <input type="number" name="AB2PS_demand6" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand6" min="0" value='83' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand6" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand6" min="0" value='9' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand6" min="0" value='0' required>
                             </div>
                             <div>
                                 <span>&nbsp;&nbsp;7&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand7" min="0" value='57' required>
-                                <input type="number" name="AB2JQ_demand7" min="0" value='14' required>
-                                <input type="number" name="PS2AB_demand7" min="0" value='6' required> 
-                                <input type="number" name="AB2PS_demand7" min="0" value='2' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand7" min="0" value='57' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand7" min="0" value='14' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand7" min="0" value='6' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand7" min="0" value='2' required>
                             </div>
                             <div>
                                 <span>&nbsp;&nbsp;8&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand8" min="0" value='52' required>
-                                <input type="number" name="AB2JQ_demand8" min="0" value='2' required>
-                                <input type="number" name="PS2AB_demand8" min="0" value='6' required> 
-                                <input type="number" name="AB2PS_demand8" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand8" min="0" value='52' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand8" min="0" value='2' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand8" min="0" value='6' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand8" min="0" value='0' required>
                             </div>
                             <div>
                                 <span>&nbsp;&nbsp;9&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand9" min="0" value='13' required>
-                                <input type="number" name="AB2JQ_demand9" min="0" value='0' required>
-                                <input type="number" name="PS2AB_demand9" min="0" value='0' required>
-                                <input type="number" name="AB2PS_demand9" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand9" min="0" value='13' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand9" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand9" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2PS_demand9" min="0" value='0' required>
                             </div>
                             <div>
                                 <span>10&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand10" min="0" value='8' required>
-                                <input type="number" name="AB2JQ_demand10" min="0" value='7' required>
-                                <input type="number" name="PS2AB_demand10" min="0" value='1' required> 
-                                <input type="number" name="AB2PS_demand10" min="0" value='1' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand10" min="0" value='8' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand10" min="0" value='7' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand10" min="0" value='1' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand10" min="0" value='1' required>
                             </div>
                             <div>
                                 <span>11&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand11" min="0" value='18' required>
-                                <input type="number" name="AB2JQ_demand11" min="0" value='12' required>
-                                <input type="number" name="PS2AB_demand11" min="0" value='2' required> 
-                                <input type="number" name="AB2PS_demand11" min="0" value='1' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand11" min="0" value='18' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand11" min="0" value='12' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand11" min="0" value='2' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand11" min="0" value='1' required>
                             </div>
                             <div>
                                 <span>12&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand12" min="0" value='13' required>
-                                <input type="number" name="AB2JQ_demand12" min="0" value='7' required>
-                                <input type="number" name="PS2AB_demand12" min="0" value='1' required> 
-                                <input type="number" name="AB2PS_demand12" min="0" value='1' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand12" min="0" value='13' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand12" min="0" value='7' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand12" min="0" value='1' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand12" min="0" value='1' required>
                             </div>
                             <div>
                                 <span>13&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand13" min="0" value='26' required>
-                                <input type="number" name="AB2JQ_demand13" min="0" value='9' required>
-                                <input type="number" name="PS2AB_demand13" min="0" value='3' required> 
-                                <input type="number" name="AB2PS_demand13" min="0" value='1' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand13" min="0" value='26' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand13" min="0" value='9' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand13" min="0" value='3' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand13" min="0" value='1' required>
                             </div>
                             <div>
                                 <span>14&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand14" min="0" value='3' required>
-                                <input type="number" name="AB2JQ_demand14" min="0" value='5' required>
-                                <input type="number" name="PS2AB_demand14" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand14" min="0" value='1' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand14" min="0" value='3' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand14" min="0" value='5' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand14" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand14" min="0" value='1' required>
                             </div>
                             <div>
                                 <span>15&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand15" min="0" value='13' required>
-                                <input type="number" name="AB2JQ_demand15" min="0" value='7' required>
-                                <input type="number" name="PS2AB_demand15" min="0" value='1' required> 
-                                <input type="number" name="AB2PS_demand15" min="0" value='1' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand15" min="0" value='13' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand15" min="0" value='7' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand15" min="0" value='1' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand15" min="0" value='1' required>
                             </div>
                             <div>
                                 <span>16&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand16" min="0" value='10' required>
-                                <input type="number" name="AB2JQ_demand16" min="0" value='7' required>
-                                <input type="number" name="PS2AB_demand16" min="0" value='1' required> 
-                                <input type="number" name="AB2PS_demand16" min="0" value='1' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand16" min="0" value='10' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand16" min="0" value='7' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand16" min="0" value='1' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand16" min="0" value='1' required>
                             </div>
                             <div>
                                 <span>17&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand17" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand17" min="0" value='12' required>
-                                <input type="number" name="PS2AB_demand17" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand17" min="0" value='1' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand17" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand17" min="0" value='12' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand17" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand17" min="0" value='1' required>
                             </div>
                             <div>
                                 <span>18&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand18" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand18" min="0" value='9' required>
-                                <input type="number" name="PS2AB_demand18" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand18" min="0" value='1' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand18" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand18" min="0" value='9' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand18" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand18" min="0" value='1' required>
                             </div>
                             <div>
                                 <span>19&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand19" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand19" min="0" value='32' required>
-                                <input type="number" name="PS2AB_demand19" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand19" min="0" value='4' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand19" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand19" min="0" value='32' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand19" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand19" min="0" value='4' required>
                             </div>
                             <div>
                                 <span>20&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand20" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand20" min="0" value='39' required>
-                                <input type="number" name="PS2AB_demand20" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand20" min="0" value='4' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand20" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand20" min="0" value='39' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand20" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand20" min="0" value='4' required>
                             </div>
                             <div>
                                 <span>21&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand21" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand21" min="0" value='53' required>
-                                <input type="number" name="PS2AB_demand21" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand21" min="0" value='6' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand21" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand21" min="0" value='53' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand21" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand21" min="0" value='6' required>
                             </div>
                             <div>
                                 <span>22&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand22" min="0" value='3' required>
-                                <input type="number" name="AB2JQ_demand22" min="0" value='35' required>
-                                <input type="number" name="PS2AB_demand22" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand22" min="0" value='4' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand22" min="0" value='3' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand22" min="0" value='35' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand22" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand22" min="0" value='4' required>
                             </div>
                             <div>
                                 <span>23&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand23" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand23" min="0" value='30' required>
-                                <input type="number" name="PS2AB_demand23" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand23" min="0" value='3' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand23" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand23" min="0" value='30' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand23" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand23" min="0" value='3' required>
                             </div>
                             <div>
                                 <span>24&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand24" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand24" min="0" value='18' required>
-                                <input type="number" name="PS2AB_demand24" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand24" min="0" value='2' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand24" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand24" min="0" value='18' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand24" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand24" min="0" value='2' required>
                             </div>
                             <div>
                                 <span>25&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand25" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand25" min="0" value='60' required>
-                                <input type="number" name="PS2AB_demand25" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand25" min="0" value='7' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand25" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand25" min="0" value='60' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand25" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand25" min="0" value='7' required>
                             </div>
                             <div>
                                 <span>26&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand26" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand26" min="0" value='44' required>
-                                <input type="number" name="PS2AB_demand26" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand26" min="0" value='5' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand26" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand26" min="0" value='44' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand26" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand26" min="0" value='5' required>
                             </div>
                             <div>
                                 <span>27&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand27" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand27" min="0" value='60' required>
-                                <input type="number" name="PS2AB_demand27" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand27" min="0" value='7' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand27" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand27" min="0" value='60' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand27" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand27" min="0" value='7' required>
                             </div>
                             <div>
                                 <span>28&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand28" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand28" min="0" value='53' required>
-                                <input type="number" name="PS2AB_demand28" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand28" min="0" value='6' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand28" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand28" min="0" value='53' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand28" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand28" min="0" value='6' required>
                             </div>
                             <div>
                                 <span>29&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand29" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand29" min="0" value='90' required>
-                                <input type="number" name="PS2AB_demand29" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand29" min="0" value='10' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand29" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand29" min="0" value='90' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand29" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand29" min="0" value='10' required>
                             </div>
                             <div>
                                 <span>30&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand30" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand30" min="0" value='58' required>
-                                <input type="number" name="PS2AB_demand30" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand30" min="0" value='6' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand30" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand30" min="0" value='58' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand30" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand30" min="0" value='6' required>
                             </div>
                             <div>
                                 <span>31&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand31" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand31" min="0" value='78' required>
-                                <input type="number" name="PS2AB_demand31" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand31" min="0" value='9' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand31" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand31" min="0" value='78' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand31" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand31" min="0" value='9' required>
                             </div>
                             <div>
                                 <span>32&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand32" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand32" min="0" value='71' required>
-                                <input type="number" name="PS2AB_demand32" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand32" min="0" value='8' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand32" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand32" min="0" value='71' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand32" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand32" min="0" value='8' required>
                             </div>
                             <div>
                                 <span>33&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand33" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand33" min="0" value='35' required>
-                                <input type="number" name="PS2AB_demand33" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand33" min="0" value='4' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand33" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand33" min="0" value='35' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand33" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand33" min="0" value='4' required>
                             </div>
                             <div>
                                 <span>34&nbsp;</span>
-                                <input type="number" name="JQ2AB_demand34" min="0" value='0' required>
-                                <input type="number" name="AB2JQ_demand34" min="0" value='55' required>
-                                <input type="number" name="PS2AB_demand34" min="0" value='0' required> 
-                                <input type="number" name="AB2PS_demand34" min="0" value='6' required>
+                                <input style="width: 115px" type="number" name="JQ2AB_demand34" min="0" value='0' required>
+                                <input style="width: 115px" type="number" name="AB2JQ_demand34" min="0" value='55' required>
+                                <input style="width: 115px" type="number" name="PS2AB_demand34" min="0" value='0' required> 
+                                <input style="width: 115px" type="number" name="AB2PS_demand34" min="0" value='6' required>
                             </div>
                         </div>
                         <br>
@@ -601,5 +606,19 @@
             </div>
         </div>
     <!-- Contact Info session -->
+    <div style="background-color: #444343;">
+        <br>
+        <div style="font-size: 40px; margin-left: 10px; margin-right: 10px">
+            <a href="https://github.com/AlisonYao" class="fa fa-github" style="color: white;"></a>
+            &nbsp;&nbsp;
+            <a href="https://www.linkedin.com/in/yuhanyao/" class="fa fa-linkedin" style="color: white;"></a>
+            &nbsp;&nbsp;
+            <a href="https://medium.com/@AlisonYuhanYao" class="fa fa-medium" style="color: white;"></a>
+            &nbsp;
+        </div>
+        <br>
+        <h6 style="color: white;">Copyright 2021. All rights reserved.</h6>
+        <br>
+    </div>
 </body>
 </html>
