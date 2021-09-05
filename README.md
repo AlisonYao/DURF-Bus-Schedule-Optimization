@@ -41,7 +41,7 @@ FLASK_APP=init.py flask run
 
 ![readme_1](./webapp/static/readme_1.png)
 
-6. Scroll down and make your own changes. You can either choose to solve either the baseline problem or the extended problem.
+6. Scroll down and make your own changes. You can solve either the baseline problem or the extended problem.
 
 ![readme_2](./webapp/static/readme_2.png)
 
@@ -49,7 +49,9 @@ FLASK_APP=init.py flask run
 
 ![readme_3](./webapp/static/readme_3.png)
 
-## Codes for Genetic Algorithm
+Try for yourself and see you can get a better result than mine.
+
+## Code for Genetic Algorithm
 
 Baseline problem solution: please see `baseline_solution.py` code
 
