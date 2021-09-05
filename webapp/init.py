@@ -2,14 +2,11 @@
 # zhuang@x86_64-apple-darwin13 webapp % FLASK_APP=init.py flask run
 ######################################################################
 
-from flask import Flask, render_template, request, url_for, redirect, send_file
+from flask import Flask, render_template, request, url_for, redirect
 import random
-from flask.helpers import total_seconds
 import numpy as np
 import time
 import matplotlib.pyplot as plt
-from PIL import Image
-import io
 
 app = Flask(__name__)
 
@@ -1545,4 +1542,4 @@ def extension():
 
 
 if __name__ == "__main__":
-    app.run("127.0.0.1", 5000, debug=True)
+    app.run("127.0.0.1", 5000) ##, debug=True)
