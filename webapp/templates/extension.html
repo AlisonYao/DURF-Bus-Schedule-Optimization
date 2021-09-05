@@ -18,9 +18,29 @@
     <title>Extension</title>
 </head>
 <body style="text-align: center">
-    {% if extensionOutput %}
-        <h4 class="extensionOutput">Extension Output:</h4>
-        <p class="extensionOutput">{{extensionOutput}}</p>
+    <img src="../static/shuttle_bus_top.png" alt='#' style="max-width: 100%;">
+    <br>
+    <br>
+    <h4>Best Extension Output:</h4>
+    <br>
+    {% if extensionOutput1 %}
+        <h6>AB to Jinqiao/Jinyang #buses (interval 1-34): {{extensionOutput1}}</h6>
+    {% endif %}
+    {% if extensionOutput2 %}
+        <h6>Jinqiao/Jinyang to AB #buses (interval 1-34): {{extensionOutput2}}</h6>
+    {% endif %}
+    {% if extensionOutput2 %}
+        <h6>AB to Pusan #buses (interval 1-34): {{extensionOutput3}}</h6>
+    {% endif %}
+    {% if extensionOutput2 %}
+        <h6>Pusan to AB #buses (interval 1-34): {{extensionOutput4}}</h6>
+    {% endif %}
+    <br>
+    {% if allFeasibilityFlag %}
+        <p>All constraints met?: {{allFeasibilityFlag}}</p>
+    {% endif %}
+    {% if minCost %}
+        <p>Min cost of the last iteration: {{minCost}}RMB</p>
     {% endif %}
     
     <!-- Contact Info session -->

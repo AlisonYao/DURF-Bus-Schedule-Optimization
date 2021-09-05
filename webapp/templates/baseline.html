@@ -18,11 +18,23 @@
     <title>baseline</title>
 </head>
 <body style="text-align: center;">
-    {% if baselineOutput %}
-        <div style="width: 100%; height: auto;">
-            <h4 class="baselineOutput">Baseline Output:</h4>
-            <p class="baselineOutput">{{baselineOutput}}</p>
-        </div>
+    <img src="../static/shuttle_bus_top.png" alt='#' style="max-width: 100%;">
+    <br>
+    <br>
+    <h4>Best Baseline Output:</h4>
+    <br>
+    {% if baselineOutput1 %}
+        <h6>AB to Jinqiao #buses (interval 1-34): {{baselineOutput1}}</h6>
+    {% endif %}
+    {% if baselineOutput2 %}
+        <h6>Jinqiao to AB #buses (interval 1-34): {{baselineOutput2}}</h6>
+    {% endif %}
+    <br>
+    {% if allFeasibilityFlag %}
+        <p>All constraints met?: {{allFeasibilityFlag}}</p>
+    {% endif %}
+    {% if minCost %}
+        <p>Min cost of the last iteration: {{minCost}}RMB</p>
     {% endif %}
 
     <!-- Contact Info session -->

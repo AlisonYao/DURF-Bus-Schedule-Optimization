@@ -2,12 +2,14 @@
 # zhuang@x86_64-apple-darwin13 webapp % FLASK_APP=init.py flask run
 ######################################################################
 
-from flask import Flask, render_template, request, url_for, redirect
+from flask import Flask, render_template, request, url_for, redirect, send_file
 import random
 from flask.helpers import total_seconds
 import numpy as np
 import time
 import matplotlib.pyplot as plt
+from PIL import Image
+import io
 
 app = Flask(__name__)
 
@@ -580,11 +582,20 @@ def baseline():
         link = sum(directional_N_paths)
         print("best solution (link): \n", link)
 
-        return str(link)
+        return str(link[1, :]), str(link[2, :]), str(allFeasibilityFlag), progress[-1]
+
+    baselineOutput1, baselineOutput2, allFeasibilityFlag, minCost = run_evolution(
+        population_size, evolution_depth, elitism_cutoff
+    )
+
+    print("$$$$$$$", baselineOutput1, baselineOutput2, allFeasibilityFlag, minCost)
 
     return render_template(
         "baseline.html",
-        baselineOutput=run_evolution(population_size, evolution_depth, elitism_cutoff),
+        baselineOutput1=baselineOutput1,
+        baselineOutput2=baselineOutput2,
+        allFeasibilityFlag=allFeasibilityFlag,
+        minCost=minCost,
     )
 
 
@@ -1399,11 +1410,31 @@ def extension():
         ]
         link = sum(directional_N_paths)
         print("best solution (link): \n", link)
-        return str(link)
+        return (
+            str(link[1]),
+            str(link[2]),
+            str(link[5]),
+            str(link[4]),
+            str(allFeasibilityFlag),
+            progress[-1],
+        )
 
+    (
+        extensionOutput1,
+        extensionOutput2,
+        extensionOutput3,
+        extensionOutput4,
+        allFeasibilityFlag,
+        minCost,
+    ) = run_evolution(population_size, evolution_depth, elitism_cutoff)
     return render_template(
         "extension.html",
-        extensionOutput=run_evolution(population_size, evolution_depth, elitism_cutoff),
+        extensionOutput1=extensionOutput1,
+        extensionOutput2=extensionOutput2,
+        extensionOutput3=extensionOutput3,
+        extensionOutput4=extensionOutput4,
+        allFeasibilityFlag=allFeasibilityFlag,
+        minCost=minCost,
     )
 
 
