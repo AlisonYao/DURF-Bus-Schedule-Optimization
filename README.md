@@ -6,7 +6,7 @@ Special thanks to Professor Zhibin Chen, the supervisor of this research project
 
 ## DURF Report
 
-The research outcome is presented in the form of a report. Please see `DURF_report.docx`.
+The research outcome is presented in the form of a report. Please see `DURF report.pdf`.
 
 ## Webapp
 
