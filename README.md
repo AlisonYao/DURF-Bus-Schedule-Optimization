@@ -79,4 +79,4 @@ The file Genetic Algorithm has all of my codes in progress.
 - `hpc_shuttle_v2.py` just outputs results into txt files.
 - `temp.py` is just a file for testing that doesn't have anything important.
 
-<!-- ## Blogs -->
+<!-- ## Blogs --> 
