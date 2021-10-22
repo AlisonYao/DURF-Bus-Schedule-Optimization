@@ -4,9 +4,17 @@ Building on our [final project](https://github.com/AlisonYao/Optimization-Final-
 
 Special thanks to Professor Zhibin Chen, the supervisor of this research project, for offering us guidance along the way and Dean's Undergraduate Research Fund (DURF) for generously providing us research funding.
 
-## DURF Report
+## DURF Report & Blogs
 
 The research outcome is presented in the form of a report. Please see `DURF report.pdf`.
+
+I have also turned the report into a series of blogs to explain things in a less formal way. Hopefully, they are easier to understand.
+
+- [Genetic Algorithm & Spatio-Temporal Networks: Optimization of Campus Shuttle Bus Schedule Part 1](https://medium.com/codex/genetic-algorithm-spatio-temporal-networks-optimization-of-campus-shuttle-bus-schedule-part-1-e0dc3bcdb30c): Spatio-Temporal Networks for problem formulation
+
+- [Genetic Algorithm & Spatio-Temporal Networks: Optimization of Campus Shuttle Bus Schedule Part 2](https://medium.com/codex/genetic-algorithm-spatio-temporal-networks-optimization-of-campus-shuttle-bus-schedule-part-2-255a25daf53e): Genetic Algorithm for Baseline Problem (with Python Code)
+
+- [Genetic Algorithm & Spatio-Temporal Networks: Optimization of Campus Shuttle Bus Schedule Part 3](https://medium.com/@AlisonYuhanYao/genetic-algorithm-spatio-temporal-networks-optimization-of-campus-shuttle-bus-schedule-part-3-7f961d46a3cb): Python Genetic Algorithm for Extended Problem & Web App Demo
 
 ## Webapp
 
